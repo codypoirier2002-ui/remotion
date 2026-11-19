@@ -2,13 +2,13 @@ import React, { useId } from "react";
 import type { Theme } from "./theme";
 
 /**
- * The typeface. Four letters, drawn here, built only from circles and straight
+ * The typeface. Eight letters, drawn here, built only from circles and straight
  * bars with one stroke weight. Because every letter is a stroke, the weight is a
  * live parameter (hairline -> ultra) and every letter can be drawn on.
  *
  * Unit: r = radius of the round letters' centre line. Cap height = 2r + weight.
  */
-export type Char = "C" | "O" | "D" | "Y";
+export type Char = "C" | "O" | "D" | "Y" | "P" | "I" | "R" | "E";
 export const WORD: Char[] = ["C", "O", "D", "Y"];
 
 /** Stroke weights, in units of r. */
@@ -28,6 +28,18 @@ const D_A = 0.5;
 const D_X0 = -(1 - D_A) / 2;
 const Y_AX = 0.7;
 const Y_JY = 0.1;
+/** P and R: straight run of the bowl, bowl radius, where the stem sits. */
+const P_B = 0.45;
+const P_RB = 0.6;
+const P_XS = -(P_B + P_RB) / 2;
+const R_XS = -0.575;
+/** R: the leg leaves the bowl here and reaches the baseline here (from the stem). */
+const R_LEG_FROM = 0.25;
+const R_LEG_TO = 0.8;
+/** E: arm lengths. */
+const E_ARM = 1.15;
+const E_MID = 1.0;
+const E_XS = -(E_ARM - BOLD / 2) / 2;
 
 const useSafeId = () => "g" + useId().replace(/[^a-zA-Z0-9]/g, "");
 
@@ -84,6 +96,90 @@ export const Glyph: React.FC<{
     );
   }
 
+  if (char === "I") {
+    const half = r + w / 2;
+    return (
+      <line
+        x1={0}
+        y1={-half}
+        x2={0}
+        y2={draw >= 1 ? half : -half + 2 * half * Math.max(0, draw)}
+        {...stroke}
+      />
+    );
+  }
+
+  if (char === "P" || char === "R") {
+    // A stem and a bowl in one stroke. R adds a leg, trimmed flat at the baseline.
+    const xs = (char === "P" ? P_XS : R_XS) * r;
+    const b = P_B * r;
+    const rb = P_RB * r;
+    const yb = -r + 2 * rb;
+    const body =
+      `M${xs} ${r + w / 2}L${xs} ${-r}L${xs + b} ${-r}` +
+      `A${rb} ${rb} 0 0 1 ${xs + b} ${yb}L${xs} ${yb}`;
+    const reach =
+      draw >= 1 ? 1 + (w * 1.2) / (r - yb) : Math.max(0, draw * 2 - 1);
+    const lx = xs + R_LEG_FROM * r;
+    return (
+      <>
+        <clipPath id={id}>
+          <rect
+            x={-3 * r - w}
+            y={-(r + w / 2)}
+            width={6 * r + 2 * w}
+            height={2 * r + w}
+          />
+        </clipPath>
+        <g clipPath={`url(#${id})`}>
+          <path
+            d={body}
+            {...stroke}
+            strokeLinejoin="miter"
+            strokeDasharray={dash(2 * r + w / 2 + 2 * b + Math.PI * rb)}
+          />
+          {char === "R" && reach > 0 ? (
+            <line
+              x1={lx}
+              y1={yb}
+              x2={lx + (R_LEG_TO - R_LEG_FROM) * r * reach}
+              y2={yb + (r - yb) * reach}
+              {...stroke}
+            />
+          ) : null}
+        </g>
+      </>
+    );
+  }
+
+  if (char === "E") {
+    // A stem and three arms. The arms stop getting fatter before the gaps close.
+    const xs = E_XS * r;
+    const half = r + w / 2;
+    const arm = Math.min(w, 0.84 * r);
+    const d = Math.min(1, Math.max(0, draw));
+    const armStroke = {
+      fill: "none",
+      stroke: color,
+      strokeWidth: arm,
+    } as const;
+    return (
+      <>
+        <line x1={xs} y1={half} x2={xs} y2={half - 2 * half * d} {...stroke} />
+        {[-(half - arm / 2), 0, half - arm / 2].map((y, k) => (
+          <line
+            key={k}
+            x1={xs - w / 2}
+            y1={y}
+            x2={xs - w / 2 + ((k === 1 ? E_MID : E_ARM) * r + w / 2) * d}
+            y2={y}
+            {...armStroke}
+          />
+        ))}
+      </>
+    );
+  }
+
   // Y: three bars from one junction, trimmed flat at cap height and baseline.
   const jy = Y_JY * r;
   const reach = draw >= 1 ? 1 + (w * 1.2) / (r + jy) : Math.max(0, draw);
@@ -136,7 +232,47 @@ export type LetterState = {
   hidden?: boolean;
 };
 
-export const Word: React.FC<{
+/** A word: which letters, and where each one sits (centres in units of r). */
+export type WordSpec = { chars: Char[]; x: number[]; width: number };
+
+/** How far each letter reaches left and right of its own centre at BOLD. */
+export const EXTENT: Record<Char, [number, number]> = {
+  C: [1.39, 0.95],
+  O: [1.39, 1.39],
+  D: [1.14, 1.14],
+  Y: [1.41, 1.41],
+  P: [0.915, 0.915],
+  I: [0.39, 0.39],
+  R: [0.965, 0.965],
+  E: [0.77, 0.77],
+};
+
+/** Set a word: letters side by side with a hand-picked gap between each pair. */
+export const setWord = (chars: Char[], gaps: number[]): WordSpec => {
+  let pen = 0;
+  const centres: number[] = [];
+  chars.forEach((c, i) => {
+    if (i > 0) pen += gaps[i - 1];
+    pen += EXTENT[c][0];
+    centres.push(pen);
+    pen += EXTENT[c][1];
+  });
+  return { chars, x: centres.map((c) => c - pen / 2), width: pen };
+};
+
+export const CODY_SPEC: WordSpec = {
+  chars: WORD,
+  x: LETTER_X,
+  width: WORD_WIDTH,
+};
+export const POIRIER_SPEC = setWord(
+  ["P", "O", "I", "R", "I", "E", "R"],
+  [0.14, 0.26, 0.34, 0.24, 0.34, 0.24],
+);
+
+/** One printing of a word: the letters themselves (layer 0) or a plate behind them. */
+export const Letters: React.FC<{
+  spec: WordSpec;
   r: number;
   /** default weight in units of r */
   weight: number;
@@ -145,10 +281,10 @@ export const Word: React.FC<{
   /** which plate this copy is: 0 = the letters themselves, 1 and 2 sit behind */
   layer: number;
   plate: [number, number];
-}> = ({ r, weight, color, letters, layer, plate }) => {
+}> = ({ spec, r, weight, color, letters, layer, plate }) => {
   return (
     <>
-      {WORD.map((char, i) => {
+      {spec.chars.map((char, i) => {
         const s = letters?.[i] ?? {};
         if (s.hidden) return null;
         const [px, py] = s.plate ?? plate;
@@ -157,9 +293,9 @@ export const Word: React.FC<{
         const pivot = s.pivot ?? 0;
         return (
           <g
-            key={char}
+            key={i}
             transform={
-              `translate(${LETTER_X[i] * r + (s.x ?? 0) + px * layer} ${(s.y ?? 0) + py * layer}) ` +
+              `translate(${spec.x[i] * r + (s.x ?? 0) + px * layer} ${(s.y ?? 0) + py * layer}) ` +
               `rotate(${s.rot ?? 0}) translate(0 ${pivot}) scale(${s.sx ?? 1} ${s.sy ?? 1}) translate(0 ${-pivot})`
             }
           >
@@ -177,8 +313,9 @@ export const Word: React.FC<{
   );
 };
 
-/** The word with its two print plates behind it. */
-export const Plated: React.FC<{
+/** A word with its two print plates behind it. */
+export const PlatedLetters: React.FC<{
+  spec: WordSpec;
   r: number;
   weight: number;
   theme: Theme;
@@ -186,11 +323,12 @@ export const Plated: React.FC<{
   plate: [number, number];
   /** how many plates to print behind the letters: 0, 1 or 2 */
   plates: number;
-}> = ({ r, weight, theme, letters, plate, plates }) => {
+}> = ({ spec, r, weight, theme, letters, plate, plates }) => {
   return (
     <>
       {plates >= 2 ? (
-        <Word
+        <Letters
+          spec={spec}
           r={r}
           weight={weight}
           color={theme.p2}
@@ -200,7 +338,8 @@ export const Plated: React.FC<{
         />
       ) : null}
       {plates >= 1 ? (
-        <Word
+        <Letters
+          spec={spec}
           r={r}
           weight={weight}
           color={theme.p1}
@@ -209,7 +348,8 @@ export const Plated: React.FC<{
           plate={plate}
         />
       ) : null}
-      <Word
+      <Letters
+        spec={spec}
         r={r}
         weight={weight}
         color={theme.fg}
@@ -220,6 +360,106 @@ export const Plated: React.FC<{
     </>
   );
 };
+
+/**
+ * A word whose letters overlap. Each letter is printed as a whole (keyline,
+ * plates, face) before the next one, in the order given, so a letter lying on
+ * another covers it instead of merging with it. The keyline is a thin band of
+ * background colour around the face that keeps same-coloured letters apart.
+ */
+export const StackedLetters: React.FC<{
+  spec: WordSpec;
+  r: number;
+  weight: number;
+  theme: Theme;
+  letters: LetterState[];
+  plate: [number, number];
+  /** letter indices, back to front */
+  order: number[];
+  /** keyline width in px */
+  keyline: number;
+}> = ({ spec, r, weight, theme, letters, plate, order, keyline }) => {
+  return (
+    <>
+      {order.map((i) => {
+        const s = letters[i];
+        if (s.hidden) return null;
+        const [px, py] = s.plate ?? plate;
+        const pivot = s.pivot ?? 0;
+        const w = (s.weight ?? weight) * r;
+        const at = (layer: number) =>
+          `translate(${spec.x[i] * r + (s.x ?? 0) + px * layer} ${(s.y ?? 0) + py * layer}) ` +
+          `rotate(${s.rot ?? 0}) translate(0 ${pivot}) scale(${s.sx ?? 1} ${s.sy ?? 1}) translate(0 ${-pivot})`;
+        const plates = Math.abs(px) + Math.abs(py) >= 0.5;
+        return (
+          <g key={i}>
+            {keyline > 0 ? (
+              <g transform={at(0)}>
+                <Glyph
+                  char={spec.chars[i]}
+                  r={r}
+                  weight={w + 2 * keyline}
+                  color={theme.bg}
+                />
+              </g>
+            ) : null}
+            {plates ? (
+              <>
+                <g transform={at(2)}>
+                  <Glyph
+                    char={spec.chars[i]}
+                    r={r}
+                    weight={w}
+                    color={theme.p2}
+                  />
+                </g>
+                <g transform={at(1)}>
+                  <Glyph
+                    char={spec.chars[i]}
+                    r={r}
+                    weight={w}
+                    color={theme.p1}
+                  />
+                </g>
+              </>
+            ) : null}
+            <g transform={at(0)}>
+              <Glyph
+                char={spec.chars[i]}
+                r={r}
+                weight={w}
+                color={s.color ?? theme.fg}
+              />
+            </g>
+          </g>
+        );
+      })}
+    </>
+  );
+};
+
+/** CODY, one printing. */
+export const Word: React.FC<{
+  r: number;
+  /** default weight in units of r */
+  weight: number;
+  color: string;
+  letters: LetterState[] | null;
+  /** which plate this copy is: 0 = the letters themselves, 1 and 2 sit behind */
+  layer: number;
+  plate: [number, number];
+}> = (props) => <Letters spec={CODY_SPEC} {...props} />;
+
+/** CODY with its two print plates behind it. */
+export const Plated: React.FC<{
+  r: number;
+  weight: number;
+  theme: Theme;
+  letters: LetterState[] | null;
+  plate: [number, number];
+  /** how many plates to print behind the letters: 0, 1 or 2 */
+  plates: number;
+}> = (props) => <PlatedLetters spec={CODY_SPEC} {...props} />;
 
 // ---------------------------------------------------------------- the parts
 

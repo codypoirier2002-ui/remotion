@@ -1,20 +1,27 @@
 # DECISIONES
 
-Vídeo de 15 segundos construido alrededor de cuatro letras: **CODY**.
-Todo es código: la tipografía, el movimiento y la música. No hay fuentes,
-imágenes, vídeo de archivo ni muestras de audio.
+Dos vídeos de 15 segundos, uno por nombre, **CODY** y **POIRIER**, y un tercero
+de 30 segundos en el que el primero desemboca en el segundo y termina con el
+nombre completo. Todo es código: la tipografía, el movimiento y la música. No
+hay fuentes, imágenes, vídeo de archivo ni muestras de audio.
+
+Este documento tiene dos partes. La primera cuenta CODY, que fue el primer
+encargo. La segunda, más abajo, cuenta POIRIER y la unión.
 
 ## Resultado
 
-| | |
-| --- | --- |
-| Archivo | `cody.mp4` (20,3 MB) |
-| Imagen | H.264, 1920×1080, 60 fps, 900 fotogramas |
-| Sonido | AAC estéreo, 48 kHz, −11,4 LUFS, pico real −1,5 dBTP |
-| Duración | 15,000000 s en el vídeo, en el audio y en el contenedor |
+| Archivo | Qué es | Duración | Fotogramas | Tamaño |
+| --- | --- | --- | --- | --- |
+| `cody.mp4` | CODY | 15,000000 s | 900 | 20,3 MB |
+| `poirier.mp4` | POIRIER, se sostiene solo | 15,000000 s | 900 | 19,5 MB |
+| `cody-poirier.mp4` | Los dos unidos | 30,000000 s | 1800 | 39,8 MB |
 
-Medido con `ffprobe` sobre el archivo final, contando los fotogramas
-decodificados uno a uno (`-count_frames`: 900).
+Los tres: H.264, 1920×1080, 60 fps, AAC estéreo a 48 kHz. Medido con `ffprobe`
+sobre cada archivo final, contando los fotogramas decodificados uno a uno
+(`-count_frames`). La duración es la misma en el vídeo, en el audio y en el
+contenedor.
+
+# Primera parte: CODY
 
 ## La idea
 
@@ -202,3 +209,199 @@ archivos, no estimadas.
 Tiempos de máquina, medidos con `time` en 4 núcleos: sintetizar la pista
 1,4 s; todo el proceso (síntesis, 900 fotogramas, unión y verificación) entre
 71 y 78 s.
+
+# Segunda parte: POIRIER, y los dos juntos
+
+## Qué se pidió y cómo lo entendí
+
+«Otro para mi apellido, y que se puedan mezclar.» Lo resolví con dos archivos:
+
+- **`poirier.mp4`**: un hermano de 15 segundos. Mismo sistema, pero se sostiene
+  solo: empieza con el punto y termina en `POIRIER.`
+- **`cody-poirier.mp4`**: los dos como una sola película de 30 segundos. La
+  mezcla está hecha en el código, no en un editor: un único sonido de principio
+  a fin, una transición animada y un final con el nombre entero.
+
+La imagen de `cody.mp4` no se ha tocado: el flujo de vídeo es el mismo, bit a
+bit. Su sonido sí se ha vuelto a codificar, por un fallo del codificador que
+encontré en esta parte y que explico en «Corrección a la primera parte».
+
+## Por qué encajan
+
+- **La misma música.** Mismo tempo (132), misma tonalidad (Fa menor), mismos
+  instrumentos y la misma forma de 33 tiempos: golpes, construcción, rotura,
+  subida, silencio, drop, solos, rotura, final. Puestos uno detrás de otro, la
+  rejilla de tiempos no se interrumpe.
+- **La misma letra.** Cuatro letras nuevas (P, I, R, E) dibujadas con las mismas
+  reglas: un solo trazo, círculos y barras. La O es la misma O.
+- **El mismo tamaño.** POIRIER mide 1505 px de ancho para que sus letras tengan
+  exactamente la altura de las de CODY. Por eso pueden compartir pantalla.
+- **El mismo punto y los mismos cuatro colores.** CODY estalla en bermellón y
+  POIRIER en cobalto: cada nombre tiene su color.
+
+## Qué es distinto, a propósito
+
+POIRIER no es CODY con otras letras. Siete letras no caben a una por golpe, y
+repetir las mismas escenas habría sido ver el mismo vídeo dos veces. Cada
+compás tiene una idea nueva dentro del mismo sistema.
+
+| Compás | CODY | POIRIER |
+| --- | --- | --- |
+| 1 | Una letra gigante por golpe: C, O, D, Y. | Por sílabas, como se dice: **POI · RI · ER**. Una letra por corchea, un color por sílaba. |
+| 2 | Trazo fino; cada letra engorda en su nota. | Trazo fino; el punto vuelve como pelota y bota sobre las letras. La que pisa, engorda. |
+| 3 | Cortado en bandas. | Dominó: la pelota tumba la P y caen las siete, una por semicorchea. Con el bombo se levantan, y pasa una ola. |
+| 4 | Estalla en piezas y una espiral las lleva al punto. | Se descolocan arriba y abajo; luego la cámara atraviesa la O. Dentro solo hay negro y el punto. |
+| 5 | Drop en bermellón; el nombre crece desde el centro. | Drop en cobalto; el nombre se abre de lado, como un acordeón. |
+| 6 | Un solo por letra. | Un solo por sílaba, y una ola por las siete. |
+| 7 | Un muro de filas que se pliega; caen cuatro letras. | Malabares; caen siete letras. |
+| 8 | `CODY.` | `POIRIER.` o, en la versión unida, el nombre entero. |
+
+**El motivo crece con el nombre.** CODY tenía cuatro notas. POIRIER tiene siete,
+agrupadas como las sílabas: Fa La♭ Do, Re♭ Fa, Mi♭ Sol. Tres sílabas, tres
+acordes. Suena en los golpes del arranque, en los botes de la pelota, en la
+melodía del drop y en los siete timbales del final.
+
+**El último lanzamiento obedece a una sola gravedad.** En el compás 7 las siete
+letras salen lanzadas a la vez y aterrizan una por semicorchea, en orden. No
+está hecho con retrasos: cada letra sube exactamente lo necesario para tardar
+lo que le toca. La altura va con el cuadrado del tiempo de vuelo, así que la P
+sube 24 px y la última R sube 1164 y se sale de cuadro antes de volver.
+
+## La unión
+
+- **Sonido.** El sintetizador toca las dos partituras seguidas en una sola
+  pasada, por la misma reverberación. La cola del último acorde de CODY sigue
+  sonando debajo del arranque de POIRIER. No hay corte ni fundido.
+- **Imagen.** La segunda mitad empieza en el fotograma exacto en que termina
+  CODY. El punto final se traga las cuatro letras, la Y primero, en medio
+  tiempo. Luego se carga y POIRIER sale de ese mismo punto, desde donde estaba.
+  El punto que cerró un nombre abre el otro.
+- **Final.** POIRIER aterriza en la línea de abajo y CODY cae en la de arriba
+  con el último golpe, alineados a la izquierda. Termina en el nombre completo
+  con su punto.
+- **La primera mitad es CODY tal cual.** Mismo código, misma imagen.
+
+Los dos archivos sueltos también se pueden pegar uno detrás de otro en
+cualquier editor: van a compás. Pero el corte es seco, CODY desaparece de
+golpe. Para eso está el tercer archivo.
+
+## Qué descarté
+
+- **Una letra por golpe.** Siete negras son casi dos compases de lo mismo.
+- **Reutilizar las escenas de CODY con otra palabra.**
+- **El dominó tal como salió primero.** Las letras caían a 62° y, al ser todas
+  del mismo color, se fundían en una mancha blanca. Ahora caen a 50°, cada
+  letra se imprime entera antes que la siguiente y lleva un filete de tinta
+  alrededor que la separa de la que tiene debajo.
+- **Malabares con intercambios cruzados.** La primera versión intercambiaba la
+  P con la R del final, las dos I entre sí y la R con la E. A mitad de vuelo
+  todas pasaban por el centro a la vez: un nudo. Ahora cada letra pasa un sitio
+  a la derecha y la última R da la vuelta por arriba. Solo gira esa R.
+- **Elipses de polvo cuando aterrizan las siete a la vez.** Formaban una
+  cadena. Se quedan solo en los aterrizajes de una en una.
+- **La palabra a 1780 px en el drop.** En el rebote se salía de cuadro. Ahora
+  1660.
+- **La E a peso máximo.** Los huecos entre los brazos se cerraban. Los brazos
+  dejan de engordar antes.
+- **El punto final entrando por la derecha, como en CODY.** No cabía: el primer
+  bote caía fuera de cuadro. Aquí cae desde arriba; la R no tiene un brazo que
+  estorbe, como tenía la Y.
+
+## Qué cambió entre versiones
+
+Fotogramas revisados en esta parte: 379.
+
+**Antes de animar.** Un fotograma con POIRIER en todos los pesos. La E se
+cerraba a peso máximo: corregido.
+
+**Pasada 1 (171 fotogramas).** Dominó ilegible, malabares hechos un nudo, la
+palabra fuera de cuadro en el drop y la cadena de elipses. Todo lo de la lista
+de arriba sale de aquí.
+
+**Pasada 2 (80 fotogramas, 40 de ellos de la versión unida).** El dominó ya se
+lee. En los malabares las letras seguían estorbándose al girar todas a la vez:
+ahora saltan derechas. La unión y el final con los dos nombres funcionaron a la
+primera. Medí el encuadre del final sobre el fotograma: 146 px de margen a cada
+lado y 380 arriba y abajo en el suelto; 141 y 146, y 193 y 192, en el unido.
+
+**Pasada 3, sobre los MP4 ya codificados (127 fotogramas).** La imagen
+aguantó la codificación sin defectos. Dos arreglos salieron de aquí. En los
+malabares las dos I todavía giraban y, tumbadas, cruzaban a sus vecinas como
+rayas: ya no giran. Y el sonido tenía un fallo del codificador, que es lo
+siguiente.
+
+**La música.** No hubo que rehacer la mezcla: es el mismo sintetizador con otra
+partitura. Medido: POIRIER −11,2 LUFS y pico real de −2,0 dBTP; la
+versión unida −11,3 LUFS y −1,9 dBTP.
+
+## Corrección a la primera parte
+
+En la primera parte medí un pico real de +0,4 dBTP en el audio codificado y lo
+arreglé bajando el nivel. Eso trataba el síntoma. La causa era otra: el
+codificador AAC de ffmpeg sustituye parte del ruido por ruido sintético, y en
+las palmas se equivocaba y metía una punta que no existe en el original. En la
+versión unida una de esas puntas llegaba a fondo de escala donde el original
+vale 0,23.
+
+Lo localicé comparando, muestra a muestra, el audio decodificado con el WAV.
+Probé ocho configuraciones del codificador y medí cada una. Desactivar esa
+sustitución (`-aac_pns 0`) elimina las puntas y además reduce el error medio.
+Los tres archivos están codificados así. En `cody.mp4` la mayor desviación
+bajó de 0,741 a 0,453 y el pico real quedó en −2,2 dBTP. Es un defecto que
+probablemente no se oía, tapado por la propia palma, pero estaba.
+
+## Lo que comprobé de que CODY sigue intacto
+
+- Reorganicé el sintetizador para que toque una partitura o dos. La pista de
+  CODY que genera ahora tiene el mismo SHA-256 que la de antes.
+- La imagen de `cody.mp4` es la entregada: el MD5 del flujo de vídeo es el
+  mismo antes y después de recodificar el sonido.
+- Además rendericé CODY entero con el código nuevo para comprobar que la
+  reorganización no cambiaba nada: 899 de 900 fotogramas salen idénticos bit a
+  bit y el otro difiere de forma invisible (PSNR 68,6 dB).
+- La primera mitad de la versión unida, comparada con `cody.mp4` fotograma a
+  fotograma: PSNR medio 79,4 dB. Es la misma imagen; la diferencia es solo de
+  compresión.
+
+## Sincronía, comprobada
+
+- El audio dentro de cada uno de los tres MP4 está desplazado **0 muestras**
+  respecto a su WAV (correlación cruzada).
+- Los golpes de imagen caen a menos de medio fotograma (±8,3 ms) del sonido.
+  En POIRIER: primer golpe −4,5 ms, RI −3,0, ER −7,6, primer bote de la pelota
+  0,0, primera ficha del dominó −7,6, todas en pie 0,0, drop +6,1, primer
+  timbal −3,0, golpe final +1,5, aterrizaje del punto −3,0.
+- En la versión unida: primer golpe de POIRIER −4,5 ms, su drop +6,1, golpe
+  final con la caída de CODY +1,5, aterrizaje del punto −3,0.
+- **La unión no tiene corte.** En `cody.mp4` los últimos 0,35 s se apagan hasta
+  el silencio (−28,9 dB). En la versión unida ese mismo tramo sigue sonando
+  (−25,7 dB) porque la cola no se corta, y alrededor del segundo 15 el mayor
+  salto entre dos muestras seguidas es 0,0105: no hay clic.
+
+## Lo que no pude comprobar
+
+Lo mismo que en la primera parte: no puedo oír. La música de POIRIER y la
+unión están medidas, no escuchadas.
+
+## Cuánto tardó de verdad esta parte
+
+| Hora (UTC) | Hito |
+| --- | --- |
+| 16:11:08 | Empiezo. |
+| 16:12:55 | Las cuatro letras nuevas dibujadas y validadas en un fotograma. |
+| 16:22:09 | Partitura, pista y las nueve escenas escritas. Primera hoja de contactos. |
+| 16:23:22 | Pasada 1 completa. |
+| 16:25:28 | Arreglos hechos. Pasada 2, incluida la versión unida. |
+| 16:31:12 | Primer render de los tres archivos. |
+| 16:32:02 | Pasada 3, sobre los MP4. |
+| 16:34:12 | Fallo del codificador de audio localizado y medido. |
+| 16:38:26 | Render definitivo de POIRIER y de la versión unida. |
+| 16:40:36 | Verificación final de los tres archivos. |
+| 16:41:15 | Este documento escrito. |
+
+**Total de la segunda parte: 30 min 7 s**, del encargo al documento terminado.
+Sumado a la primera (43 min 52 s): 1 h 13 min 59 s de trabajo.
+
+Tiempos de máquina, medidos con `time` en 4 núcleos: el proceso completo (síntesis, render,
+unión y verificación) tarda entre 70 y 74 s para cada pieza de 15 segundos y
+entre 140 y 145 s para la de 30.

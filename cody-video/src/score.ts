@@ -127,6 +127,7 @@ export const TOMS = FILL_BEATS.map((beat, i) => ({
   beat,
   midi: m(MOTIF[i], i === 3 ? 3 : 2),
   vel: 0.8 + i * 0.07,
+  pan: -0.45 + i * 0.3,
 }));
 
 // ---------------------------------------------------------------- bass
@@ -362,3 +363,36 @@ export const SILENCE = { from: 16.5, to: 17 };
 /** The drop: the one big moment. */
 export const DROP = 17;
 export const FINAL = 29;
+
+// ---------------------------------------------------------------- the whole thing
+/** Everything the synthesizer needs to play one 33-beat piece. */
+export type Score = {
+  KICKS: Kick[];
+  CLAPS: { beat: number; vel: number }[];
+  SNARES: Snare[];
+  HATS: Hat[];
+  TOMS: { beat: number; midi: number; vel: number; pan: number }[];
+  /** small pitched knocks, for things that tip over or hop */
+  TICKS: { beat: number; midi: number; vel: number; pan: number }[];
+  BASS: BassNote[];
+  STABS: Stab[];
+  ARP: ArpNote[];
+  LEAD: LeadNote[];
+  BELLS: { beat: number; midi: number; vel: number }[];
+  IMPACTS: { beat: number; size: number }[];
+};
+
+export const CODY_SCORE: Score = {
+  KICKS,
+  CLAPS,
+  SNARES,
+  HATS,
+  TOMS,
+  TICKS: [],
+  BASS,
+  STABS,
+  ARP,
+  LEAD,
+  BELLS,
+  IMPACTS,
+};

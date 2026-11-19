@@ -168,7 +168,8 @@ export const Finish: React.FC = () => {
 };
 
 /** Camera shake on the big hits. */
-const SHAKES = [
+export type ShakeHit = { beat: number; amp: number };
+export const CODY_SHAKES: ShakeHit[] = [
   { beat: 1, amp: 16 },
   { beat: 2, amp: 10 },
   { beat: 3, amp: 10 },
@@ -185,13 +186,14 @@ const SHAKES = [
   { beat: 29, amp: 20 },
 ];
 
-export const Shake: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const Shake: React.FC<{
+  shakes: ShakeHit[];
+  children: React.ReactNode;
+}> = ({ shakes, children }) => {
   const frame = useCurrentFrame();
   const beat = frameToBeat(frame + 0.5);
   let amp = 0;
-  for (const s of SHAKES) {
+  for (const s of shakes) {
     const t = since(beat, s.beat);
     if (t >= 0) amp += s.amp * Math.exp(-t / 0.15);
   }

@@ -2,16 +2,42 @@
  * Synthesizes the soundtrack from nothing but math: oscillators, noise, filters,
  * envelopes, a reverb and a delay. No samples, no audio files read.
  *
- *   bun scripts/make-music.ts   ->   public/cody-track.wav
+ *   bun scripts/make-music.ts [cody | poirier | cody-poirier]
  *
  * Every note comes from src/score.ts, the same file the visuals read.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import * as S from "../src/score";
+import { CODY_SCORE, type Score } from "../src/score";
+import { POIRIER_SCORE } from "../src/score-poirier";
+
+/**
+ * What to render. Each part is one 33-beat score; parts are played back to
+ * back on one beat grid and through one reverb, so tails ring across the join.
+ *
+ *   bun scripts/make-music.ts cody           ->  public/cody-track.wav
+ *   bun scripts/make-music.ts poirier        ->  public/poirier-track.wav
+ *   bun scripts/make-music.ts cody-poirier   ->  public/cody-poirier-track.wav
+ */
+type Part = { score: Score; whistle: boolean };
+const PIECES: Record<string, Part[]> = {
+  cody: [{ score: CODY_SCORE, whistle: true }],
+  poirier: [{ score: POIRIER_SCORE, whistle: true }],
+  // joined: the dot is already on screen when POIRIER starts, so it does not whistle in
+  "cody-poirier": [
+    { score: CODY_SCORE, whistle: true },
+    { score: POIRIER_SCORE, whistle: false },
+  ],
+};
+const pieceName = process.argv[2] ?? "cody";
+const parts = PIECES[pieceName];
+if (!parts) throw new Error(`unknown piece "${pieceName}"`);
+const PART_BEATS = 33;
+const TOTAL_SEC = parts.length * S.DURATION_SEC;
 
 const SR = 48000;
-const N = Math.round(SR * S.DURATION_SEC);
+const N = Math.round(SR * TOTAL_SEC);
 const TAU = Math.PI * 2;
 
 type Bus = { l: Float32Array; r: Float32Array };
@@ -474,61 +500,81 @@ function whistle(tA: number, dur: number, fA: number, fB: number, vol: number) {
 }
 
 // ================================================================ play the score
-for (const kk of S.KICKS) kick(sec(kk.beat), kk.vel, kk.heavy);
-for (const c of S.CLAPS) clap(sec(c.beat), c.vel);
-for (const s of S.SNARES) snare(sec(s.beat), s.vel, s.pitch);
-S.HATS.forEach((h) =>
-  cymbal(
-    sec(h.beat),
-    h.vel * (h.open ? 0.5 : 0.55),
-    h.open ? 0.085 : 0.022,
-    h.open ? 6500 : 8200,
-    drumBus,
-    h.open ? 0.1 : 0,
-  ),
-);
-S.TOMS.forEach((t, i) => {
-  tom(sec(t.beat), t.midi, t.vel, -0.45 + i * 0.3);
-  snare(sec(t.beat), 0.35 + i * 0.08, 1 + i * 0.06);
-});
-for (const b of S.BASS)
-  bassNote(sec(b.beat), b.dur * S.BEAT_SEC, b.midi, b.vel, b.bright);
-for (const s of S.STABS) stab(s);
-S.ARP.forEach((a, i) =>
-  pluck(sec(a.beat), a.midi, a.vel, a.bright, i % 2 === 0 ? -0.35 : 0.35),
-);
-for (const n of S.LEAD) lead(n);
-S.BELLS.forEach((b, i) =>
-  bell(sec(b.beat), b.midi, b.vel, i % 2 === 0 ? -0.2 : 0.2),
-);
-for (const im of S.IMPACTS) {
-  boom(sec(im.beat), im.size);
-  cymbal(sec(im.beat), 0.85 * im.size, 0.42, 4200, fxBus, 0.5);
-}
+parts.forEach((part, index) => {
+  const P = part.score;
+  const at = index * PART_BEATS;
+  for (const kk of P.KICKS) kick(sec(at + kk.beat), kk.vel, kk.heavy);
+  for (const c of P.CLAPS) clap(sec(at + c.beat), c.vel);
+  for (const s of P.SNARES) snare(sec(at + s.beat), s.vel, s.pitch);
+  P.HATS.forEach((h) =>
+    cymbal(
+      sec(at + h.beat),
+      h.vel * (h.open ? 0.5 : 0.55),
+      h.open ? 0.085 : 0.022,
+      h.open ? 6500 : 8200,
+      drumBus,
+      h.open ? 0.1 : 0,
+    ),
+  );
+  P.TOMS.forEach((t, i) => {
+    tom(sec(at + t.beat), t.midi, t.vel, t.pan);
+    snare(sec(at + t.beat), 0.35 + i * 0.08, 1 + i * 0.06);
+  });
+  for (const b of P.BASS)
+    bassNote(sec(at + b.beat), b.dur * S.BEAT_SEC, b.midi, b.vel, b.bright);
+  for (const s of P.STABS) stab({ ...s, beat: at + s.beat });
+  P.ARP.forEach((a, i) =>
+    pluck(
+      sec(at + a.beat),
+      a.midi,
+      a.vel,
+      a.bright,
+      i % 2 === 0 ? -0.35 : 0.35,
+    ),
+  );
+  for (const n of P.LEAD) lead({ ...n, beat: at + n.beat });
+  P.BELLS.forEach((b, i) =>
+    bell(sec(at + b.beat), b.midi, b.vel, i % 2 === 0 ? -0.2 : 0.2),
+  );
+  for (const im of P.IMPACTS) {
+    boom(sec(at + im.beat), im.size);
+    cymbal(sec(at + im.beat), 0.85 * im.size, 0.42, 4200, fxBus, 0.5);
+  }
+  for (const t of P.TICKS) tom(sec(at + t.beat), t.midi, t.vel, t.pan);
 
-// Pickup: the dot whistles down, thuds, charges up.
-whistle(0, 0.21, 2900, 520, 0.2);
-tom(sec(0.5), 36, 0.85);
-toneRiser(sec(0.5), sec(1), 0.5, 90, 1900, 0);
-noiseRiser(sec(0.4), sec(1), 0.5, 600, 9000, 2.5);
-// Build-up into the drop.
-noiseRiser(sec(13), sec(16.5), 0.62, 350, 10000, 2.2);
-toneRiser(sec(13), sec(16.5), 0.4, 174.6, 1396.9, 1 / (S.BEAT_SEC / 4));
-// Swell into the final hit.
-noiseRiser(sec(27), sec(29), 0.4, 500, 9000, 3);
+  // Pickup: the dot whistles down, thuds, charges up.
+  if (part.whistle) whistle(sec(at), 0.21, 2900, 520, 0.2);
+  tom(sec(at + 0.5), 36, 0.85);
+  toneRiser(sec(at + 0.5), sec(at + 1), 0.5, 90, 1900, 0);
+  noiseRiser(sec(at + 0.4), sec(at + 1), 0.5, 600, 9000, 2.5);
+  // Build-up into the drop.
+  noiseRiser(sec(at + 13), sec(at + 16.5), 0.62, 350, 10000, 2.2);
+  toneRiser(
+    sec(at + 13),
+    sec(at + 16.5),
+    0.4,
+    174.6,
+    1396.9,
+    1 / (S.BEAT_SEC / 4),
+  );
+  // Swell into the final hit.
+  noiseRiser(sec(at + 27), sec(at + 29), 0.4, 500, 9000, 3);
+});
 
 // ================================================================ mix
 // Side-chain: everything musical ducks under the kick, which gives the pump.
 const duck = new Float32Array(N).fill(1);
-for (const kk of S.KICKS) {
-  const i0 = Math.floor(sec(kk.beat) * SR);
-  const len = Math.floor(SR * 0.4);
-  for (let i = 0; i < len && i0 + i < N; i++) {
-    const t = i / SR;
-    const g = 1 - kk.vel * Math.min(1, t / 0.003) * Math.exp(-t / 0.1);
-    duck[i0 + i] = Math.min(duck[i0 + i], g);
+parts.forEach((part, index) => {
+  for (const kk of part.score.KICKS) {
+    const i0 = Math.floor(sec(index * PART_BEATS + kk.beat) * SR);
+    const len = Math.floor(SR * 0.4);
+    for (let i = 0; i < len && i0 + i < N; i++) {
+      const t = i / SR;
+      const g = 1 - kk.vel * Math.min(1, t / 0.003) * Math.exp(-t / 0.1);
+      duck[i0 + i] = Math.min(duck[i0 + i], g);
+    }
   }
-}
+});
 
 function freeverb(input: Bus, room: number, damp: number): Bus {
   const out = makeBus();
@@ -683,7 +729,9 @@ for (let i = 0; i < N; i++) {
 
   // Arrangement dynamics: the build sits under the stomps and under the drop,
   // so the drop has somewhere to go.
-  const beat = t / S.BEAT_SEC;
+  // (every part has the same form, so work in time since the part began)
+  const tPart = t % S.DURATION_SEC;
+  const beat = tPart / S.BEAT_SEC;
   let section = 1;
   if (beat >= 5 && beat < 13) section = 0.7;
   else if (beat >= 13 && beat < 17)
@@ -693,14 +741,14 @@ for (let i = 0; i < N; i++) {
   r *= section;
 
   // The hole before the drop: everything, tails included, gets pulled out.
-  if (t > silA - 0.012 && t < silB) {
-    const g = t < silA ? (silA - t) / 0.012 : 0;
+  if (tPart > silA - 0.012 && tPart < silB) {
+    const g = tPart < silA ? (silA - tPart) / 0.012 : 0;
     const floor = 0.015;
     l *= floor + (1 - floor) * g;
     r *= floor + (1 - floor) * g;
   }
   // Fade the tail so the file ends on true silence.
-  const tail = S.DURATION_SEC - t;
+  const tail = TOTAL_SEC - t;
   if (tail < 0.35) {
     const g = Math.max(0, tail / 0.35);
     l *= g * g;
@@ -765,7 +813,7 @@ const target = join(
   dirname(new URL(import.meta.url).pathname),
   "..",
   "public",
-  "cody-track.wav",
+  `${pieceName}-track.wav`,
 );
 mkdirSync(dirname(target), { recursive: true });
 writeFileSync(target, pcm);

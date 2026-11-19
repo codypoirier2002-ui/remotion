@@ -10,6 +10,8 @@ import {
   ULTRA,
   WORD_WIDTH,
   LETTER_X,
+  PlatedLetters,
+  POIRIER_SPEC,
 } from "./Glyph";
 import { BONE, COBALT, THEMES, VERMILION } from "./theme";
 
@@ -99,6 +101,52 @@ export const Specimen: React.FC = () => {
             );
           })}
         </g>
+      </Stage>
+      <Finish />
+    </AbsoluteFill>
+  );
+};
+
+/** The second word at every weight, and drawing on. */
+export const SpecimenPoirier: React.FC = () => {
+  const theme = THEMES.ink;
+  const r = 1500 / POIRIER_SPEC.width;
+  const rows: [number, number, number, number][] = [
+    [-390, HAIR, 0, 1],
+    [-130, 0.4, 0, 1],
+    [130, BOLD, 2, 1],
+    [390, ULTRA, 0, 1],
+  ];
+  return (
+    <AbsoluteFill style={{ backgroundColor: theme.bg }}>
+      <Stage>
+        <Backdrop
+          theme={theme}
+          beat={0}
+          ripples={[]}
+          suck={0}
+          gridOpacity={1}
+        />
+        {rows.map(([y, weight, plates]) => (
+          <g key={y} transform={`translate(0 ${y}) scale(0.72)`}>
+            <PlatedLetters
+              spec={POIRIER_SPEC}
+              r={r}
+              weight={weight}
+              theme={theme}
+              letters={
+                y === -390
+                  ? [0.3, 0.5, 0.6, 0.45, 1, 0.7, 0.75].map((draw) => ({
+                      draw,
+                      weight: HAIR * 2,
+                    }))
+                  : null
+              }
+              plate={[9, 9]}
+              plates={plates}
+            />
+          </g>
+        ))}
       </Stage>
       <Finish />
     </AbsoluteFill>
