@@ -2,12 +2,14 @@
  * Synthesizes the soundtrack from nothing but math: oscillators, noise, filters,
  * envelopes, a reverb and a delay. No samples, no audio files read.
  *
- *   bun scripts/make-music.ts [cody | poirier | cody-poirier | lumen | splash]
+ *   bun scripts/make-music.ts [cody | poirier | cody-poirier | lumen | splash | cosmos]
  *
  * Every note comes from src/score*.ts, the same files the visuals read.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { COSMOS_SCORE } from "../src/cosmos/score";
+import { C_BEAT, C_SECONDS } from "../src/cosmos/timeline";
 import * as S from "../src/score";
 import { CODY_SCORE, type Score } from "../src/score";
 import { LUMEN_SCORE } from "../src/score-lumen";
@@ -23,6 +25,7 @@ import { SPLASH_SCORE } from "../src/score-splash";
  *   bun scripts/make-music.ts cody-poirier   ->  public/cody-poirier-track.wav
  *   bun scripts/make-music.ts lumen          ->  public/lumen-track.wav
  *   bun scripts/make-music.ts splash         ->  public/splash-track.wav
+ *   bun scripts/make-music.ts cosmos         ->  public/cosmos-track.wav
  *
  * `pickup` is what happens in the beat before bar 1:
  *   dot     the dot whistles down, thuds and charges up
@@ -30,29 +33,55 @@ import { SPLASH_SCORE } from "../src/score-splash";
  *   swell   nothing lands: one long swell into the first hit
  *
  * `tonic` is the key the pitched risers climb in: [swell from, build from, top] in Hz.
+ *
+ * A piece has one of two forms:
+ *   title  the 33-beat form of the four title pieces: pickup, build-up risers,
+ *          half a beat of silence before the drop, and fixed section levels
+ *   film   nothing but what the score says, including its levels (GAIN)
  */
 const F_RISE = [87.3, 174.6, 1396.9];
 const A_RISE = [110, 220, 1760];
 type Part = {
   score: Score;
-  pickup: "dot" | "joined" | "swell";
+  pickup: "dot" | "joined" | "swell" | "none";
   tonic: number[];
 };
-const PIECES: Record<string, Part[]> = {
-  cody: [{ score: CODY_SCORE, pickup: "dot", tonic: F_RISE }],
-  poirier: [{ score: POIRIER_SCORE, pickup: "dot", tonic: F_RISE }],
-  "cody-poirier": [
+type Piece = {
+  form: "title" | "film";
+  parts: Part[];
+  /** seconds per beat */
+  beat: number;
+  seconds: number;
+};
+const title = (parts: Part[]): Piece => ({
+  form: "title",
+  parts,
+  beat: S.BEAT_SEC,
+  seconds: parts.length * S.DURATION_SEC,
+});
+const PIECES: Record<string, Piece> = {
+  cody: title([{ score: CODY_SCORE, pickup: "dot", tonic: F_RISE }]),
+  poirier: title([{ score: POIRIER_SCORE, pickup: "dot", tonic: F_RISE }]),
+  "cody-poirier": title([
     { score: CODY_SCORE, pickup: "dot", tonic: F_RISE },
     { score: POIRIER_SCORE, pickup: "joined", tonic: F_RISE },
-  ],
-  lumen: [{ score: LUMEN_SCORE, pickup: "swell", tonic: F_RISE }],
-  splash: [{ score: SPLASH_SCORE, pickup: "swell", tonic: A_RISE }],
+  ]),
+  lumen: title([{ score: LUMEN_SCORE, pickup: "swell", tonic: F_RISE }]),
+  splash: title([{ score: SPLASH_SCORE, pickup: "swell", tonic: A_RISE }]),
+  cosmos: {
+    form: "film",
+    parts: [{ score: COSMOS_SCORE, pickup: "none", tonic: [] }],
+    beat: C_BEAT,
+    seconds: C_SECONDS,
+  },
 };
 const pieceName = process.argv[2] ?? "cody";
-const parts = PIECES[pieceName];
-if (!parts) throw new Error(`unknown piece "${pieceName}"`);
+const piece = PIECES[pieceName];
+if (!piece) throw new Error(`unknown piece "${pieceName}"`);
+const parts = piece.parts;
+const BEAT = piece.beat;
 const PART_BEATS = 33;
-const TOTAL_SEC = parts.length * S.DURATION_SEC;
+const TOTAL_SEC = piece.seconds;
 
 const SR = 48000;
 const N = Math.round(SR * TOTAL_SEC);
@@ -60,7 +89,7 @@ const TAU = Math.PI * 2;
 
 type Bus = { l: Float32Array; r: Float32Array };
 const makeBus = (): Bus => ({ l: new Float32Array(N), r: new Float32Array(N) });
-const sec = (beat: number) => beat * S.BEAT_SEC;
+const sec = (beat: number) => beat * BEAT;
 const mtof = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
 
 // Deterministic noise, so every run produces the identical file.
@@ -301,7 +330,7 @@ function bassNote(
 
 function stab(s: S.Stab) {
   const t0 = sec(s.beat);
-  const dur = s.dur * S.BEAT_SEC;
+  const dur = s.dur * BEAT;
   const len = Math.floor(SR * (dur + 0.25));
   const i0 = Math.floor(t0 * SR);
   const voices: { dt: number; ph: number; gl: number; gr: number }[] = [];
@@ -345,7 +374,7 @@ function stab(s: S.Stab) {
 /** A held chord: two detuned saws per note, a filter that opens with the attack. */
 function pad(p: S.Pad) {
   const t0 = sec(p.beat);
-  const dur = p.dur * S.BEAT_SEC;
+  const dur = p.dur * BEAT;
   const len = Math.floor(SR * (dur + 0.5));
   const i0 = Math.floor(t0 * SR);
   const voices: { dt: number; ph: number; gl: number; gr: number }[] = [];
@@ -415,7 +444,7 @@ function pluck(
 
 function lead(n: S.LeadNote) {
   const t0 = sec(n.beat);
-  const dur = n.dur * S.BEAT_SEC;
+  const dur = n.dur * BEAT;
   const len = Math.floor(SR * (dur + 0.3));
   const i0 = Math.floor(t0 * SR);
   const dets = [-0.17, -0.08, 0, 0.08, 0.17];
@@ -558,6 +587,32 @@ function whistle(tA: number, dur: number, fA: number, fB: number, vol: number) {
   }
 }
 
+/** A crack of bright noise, then low noise rolling away. */
+function thunder(t0: number, vel: number) {
+  const len = Math.floor(SR * 2.8);
+  const i0 = Math.floor(t0 * SR);
+  const hp = new SVF();
+  const lpL = new SVF();
+  const lpR = new SVF();
+  for (let i = 0; i < len && i0 + i < N; i++) {
+    const t = i / SR;
+    const crack = Math.min(1, t / 0.002) * Math.exp(-t / 0.035);
+    const roll =
+      Math.min(1, t / 0.08) *
+      Math.exp(-t / 0.95) *
+      (0.65 + 0.35 * Math.sin(t * 7.3) * Math.sin(t * 2.1 + 1));
+    hp.tick(rnd(), 2400, 0.7);
+    lpL.tick(rnd(), 160 + 700 * Math.exp(-t / 0.25), 0.8);
+    lpR.tick(rnd(), 190 + 700 * Math.exp(-t / 0.25), 0.8);
+    const l = (hp.hp * crack * 0.9 + lpL.lp * roll * 2.6) * vel;
+    const r = (hp.hp * crack * 0.9 + lpR.lp * roll * 2.6) * vel;
+    fxBus.l[i0 + i] += l;
+    fxBus.r[i0 + i] += r;
+    revSend.l[i0 + i] += l * 0.3;
+    revSend.r[i0 + i] += r * 0.3;
+  }
+}
+
 // ================================================================ play the score
 parts.forEach((part, index) => {
   const P = part.score;
@@ -580,7 +635,7 @@ parts.forEach((part, index) => {
     snare(sec(at + t.beat), 0.35 + i * 0.08, 1 + i * 0.06);
   });
   for (const b of P.BASS)
-    bassNote(sec(at + b.beat), b.dur * S.BEAT_SEC, b.midi, b.vel, b.bright);
+    bassNote(sec(at + b.beat), b.dur * BEAT, b.midi, b.vel, b.bright);
   for (const s of P.STABS) stab({ ...s, beat: at + s.beat });
   for (const p of P.PADS) pad({ ...p, beat: at + p.beat });
   P.ARP.forEach((a, i) =>
@@ -602,10 +657,19 @@ parts.forEach((part, index) => {
   }
   for (const t of P.TICKS) tom(sec(at + t.beat), t.midi, t.vel, t.pan);
 
+  for (const r of P.RISERS) {
+    if (r.noise > 0)
+      noiseRiser(sec(at + r.from), sec(at + r.to), r.noise, 350, 10000, 2.2);
+    if (r.tone > 0)
+      toneRiser(sec(at + r.from), sec(at + r.to), r.tone, r.lo, r.hi, 0);
+  }
+  for (const th of P.THUNDER) thunder(sec(at + th.beat), th.vel);
+  if (piece.form === "film") return;
+
   if (part.pickup === "swell") {
     toneRiser(sec(at), sec(at + 1), 0.45, part.tonic[0], part.tonic[2], 0);
     noiseRiser(sec(at), sec(at + 1), 0.55, 300, 9000, 2);
-  } else {
+  } else if (part.pickup !== "none") {
     if (part.pickup === "dot") whistle(sec(at), 0.21, 2900, 520, 0.2);
     tom(sec(at + 0.5), 36, 0.85);
     toneRiser(sec(at + 0.5), sec(at + 1), 0.5, 90, 1900, 0);
@@ -619,7 +683,7 @@ parts.forEach((part, index) => {
     0.4,
     part.tonic[1],
     part.tonic[2],
-    1 / (S.BEAT_SEC / 4),
+    1 / (BEAT / 4),
   );
   // Swell into the final hit.
   noiseRiser(sec(at + 27), sec(at + 29), 0.4, 500, 9000, 3);
@@ -713,7 +777,7 @@ const stats = (name: string, b: Bus) => {
     `  ${name.padEnd(8)} peak ${pk.toFixed(3)}  rms ${Math.sqrt(sq / (2 * N)).toFixed(4)}`,
   );
 };
-const delay = pingPong(dlySend, S.BEAT_SEC * 0.75, 0.42);
+const delay = pingPong(dlySend, BEAT * 0.75, 0.42);
 for (let i = 0; i < N; i++) {
   revSend.l[i] += delay.l[i] * 0.25;
   revSend.r[i] += delay.r[i] * 0.25;
@@ -763,6 +827,19 @@ if (process.env.STATS) {
 }
 const outL = new Float32Array(N);
 const outR = new Float32Array(N);
+/** The film's level at a beat: straight lines between the score's GAIN points. */
+const GAIN = parts[0].score.GAIN;
+const filmGain = (beat: number) => {
+  if (GAIN.length === 0 || beat <= GAIN[0][0]) return GAIN[0]?.[1] ?? 1;
+  for (let k = 1; k < GAIN.length; k++) {
+    const [b1, g1] = GAIN[k];
+    if (beat < b1) {
+      const [b0, g0] = GAIN[k - 1];
+      return g0 + ((g1 - g0) * (beat - b0)) / (b1 - b0);
+    }
+  }
+  return GAIN[GAIN.length - 1][1];
+};
 const silA = sec(S.SILENCE.from);
 const silB = sec(S.SILENCE.to);
 const SHELF_K = 1 - Math.exp((-2 * Math.PI * 3800) / SR);
@@ -791,25 +868,31 @@ for (let i = 0; i < N; i++) {
     fxBus.r[i] * 0.42 +
     reverb.r[i] * 1.0 * dSoft;
 
-  // Arrangement dynamics: the build sits under the stomps and under the drop,
-  // so the drop has somewhere to go.
-  // (every part has the same form, so work in time since the part began)
-  const tPart = t % S.DURATION_SEC;
-  const beat = tPart / S.BEAT_SEC;
-  let section = 1;
-  if (beat >= 5 && beat < 13) section = 0.7;
-  else if (beat >= 13 && beat < 17)
-    section = 0.7 + 0.25 * Math.min(1, (beat - 13) / 3.5);
-  else if (beat < 5 && beat > 4.97) section = 0.7 + 0.3 * ((5 - beat) / 0.03);
-  l *= section;
-  r *= section;
+  if (piece.form === "film") {
+    const g = filmGain(t / BEAT);
+    l *= g;
+    r *= g;
+  } else {
+    // Arrangement dynamics: the build sits under the stomps and under the drop,
+    // so the drop has somewhere to go.
+    // (every part has the same form, so work in time since the part began)
+    const tPart = t % S.DURATION_SEC;
+    const beat = tPart / S.BEAT_SEC;
+    let section = 1;
+    if (beat >= 5 && beat < 13) section = 0.7;
+    else if (beat >= 13 && beat < 17)
+      section = 0.7 + 0.25 * Math.min(1, (beat - 13) / 3.5);
+    else if (beat < 5 && beat > 4.97) section = 0.7 + 0.3 * ((5 - beat) / 0.03);
+    l *= section;
+    r *= section;
 
-  // The hole before the drop: everything, tails included, gets pulled out.
-  if (tPart > silA - 0.012 && tPart < silB) {
-    const g = tPart < silA ? (silA - tPart) / 0.012 : 0;
-    const floor = 0.015;
-    l *= floor + (1 - floor) * g;
-    r *= floor + (1 - floor) * g;
+    // The hole before the drop: everything, tails included, gets pulled out.
+    if (tPart > silA - 0.012 && tPart < silB) {
+      const g = tPart < silA ? (silA - tPart) / 0.012 : 0;
+      const floor = 0.015;
+      l *= floor + (1 - floor) * g;
+      r *= floor + (1 - floor) * g;
+    }
   }
   // Fade the tail so the file ends on true silence.
   const tail = TOTAL_SEC - t;

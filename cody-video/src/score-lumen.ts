@@ -306,4 +306,7 @@ export const LUMEN_SCORE: Score = {
     { beat: 17, size: 1.2 },
     { beat: 29, size: 1.05 },
   ],
+  RISERS: [],
+  THUNDER: [],
+  GAIN: [],
 };

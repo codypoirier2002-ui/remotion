@@ -390,6 +390,18 @@ export type Score = {
   LEAD: LeadNote[];
   BELLS: { beat: number; midi: number; vel: number }[];
   IMPACTS: { beat: number; size: number }[];
+  /** a noise sweep and/or a pitched sweep from `lo` to `hi` Hz, beats `from` to `to` */
+  RISERS: {
+    from: number;
+    to: number;
+    noise: number;
+    tone: number;
+    lo: number;
+    hi: number;
+  }[];
+  THUNDER: { beat: number; vel: number }[];
+  /** overall level, [beat, gain]; only the "film" form reads it */
+  GAIN: [number, number][];
 };
 
 export const CODY_SCORE: Score = {
@@ -406,4 +418,7 @@ export const CODY_SCORE: Score = {
   LEAD,
   BELLS,
   IMPACTS,
+  RISERS: [],
+  THUNDER: [],
+  GAIN: [],
 };

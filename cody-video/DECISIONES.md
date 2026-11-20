@@ -2,13 +2,15 @@
 
 Dos vídeos de 15 segundos, uno por nombre, **CODY** y **POIRIER**; uno de 30
 segundos en el que el primero desemboca en el segundo y termina con el nombre
-completo; y otros dos de 15 segundos sin una sola letra, cada uno con su
+completo; otros dos de 15 segundos sin una sola letra, cada uno con su
 estilo: **LUMEN**, puntos de luz en la oscuridad, y **SPLASH**, pintura espesa
-a todo color. Todo es código: la tipografía, el movimiento, la luz, la pintura
-y la música. No hay fuentes, imágenes, vídeo de archivo ni muestras de audio.
+a todo color; y **COSMOS**, un minuto en vertical que cuenta 13.800 millones
+de años de historia del universo, hecho a partir de un vídeo de referencia.
+Todo es código: la tipografía, el movimiento, la luz, la pintura, los
+paisajes y la música. No hay imágenes, vídeo de archivo ni muestras de audio.
 
-Este documento tiene cuatro partes, en el orden en que se encargaron: CODY,
-luego POIRIER y la unión, después LUMEN y al final SPLASH.
+Este documento tiene cinco partes, en el orden en que se encargaron: CODY,
+luego POIRIER y la unión, después LUMEN, SPLASH y al final COSMOS.
 
 ## Resultado
 
@@ -19,8 +21,10 @@ luego POIRIER y la unión, después LUMEN y al final SPLASH.
 | `cody-poirier.mp4` | Los dos unidos | 30,000000 s | 1800 | 39,8 MB |
 | `lumen.mp4` | LUMEN, sin palabras | 15,000000 s | 900 | 31,8 MB |
 | `splash.mp4` | SPLASH, sin palabras | 15,000000 s | 900 | 17,1 MB |
+| `cosmos.mp4` | COSMOS, vertical | 60,000000 s | 1800 | 20,2 MB |
 
-Los cinco: H.264, 1920×1080, 60 fps, AAC estéreo a 48 kHz. Medido con `ffprobe`
+Los cinco primeros: H.264, 1920×1080, 60 fps. COSMOS: H.264, 1080×1920
+(vertical), 30 fps, como su referencia. Todos con AAC estéreo a 48 kHz. Medido con `ffprobe`
 sobre cada archivo final, contando los fotogramas decodificados uno a uno
 (`-count_frames`). La duración es la misma en el vídeo, en el audio y en el
 contenedor.
@@ -871,3 +875,225 @@ Sumado a las tres primeras (1 h 51 min 13 s): 2 h 22 min 19 s de trabajo.
 Tiempos de máquina, medidos con `time` en 4 núcleos: sintetizar la pista
 2,0 s; un fotograma entre 0,12 y 0,40 s; el proceso completo (síntesis,
 900 fotogramas, unión y verificación) entre 2 min 14 s y 2 min 28 s.
+
+# Quinta parte: COSMOS, a partir de un vídeo de referencia
+
+## Qué se pidió y cómo lo entendí
+
+Un vídeo de referencia y la petición de hacer uno de estilo parecido, con otro
+tema a mi elección, usando solo lo que tengo a mano.
+
+**Qué es la referencia, medido.** La miré entera: 184 fotogramas, uno por
+segundo, y medí su sonido.
+
+- Vertical, 720×1280, 30 fps, 3 min 4 s.
+- La misma composición todo el rato: fondo negro; arriba, la cabecera de una
+  cuenta (avatar, nombre, usuario) y un pie de foto de dos líneas; en el
+  centro, una franja de imagen panorámica (de la fila 438 a la 872); abajo,
+  negro vacío.
+- Montaje de tráiler: un plano nuevo cada uno o dos segundos, en orden
+  cronológico (de la creación al apocalipsis), con destellos en los golpes.
+- Imágenes de aspecto pictórico, iluminación dramática y grano: están hechas
+  con generadores de imagen y vídeo por IA.
+- La música es épica, de tráiler: medí unos 150 pulsos por minuto, −14,1 LUFS,
+  16 LU de rango (partes muy bajas y partes muy altas), dos tramos en calma y
+  golpes graves agrupados en los clímax.
+
+**Qué tomé de ella:** el formato vertical y su composición, el montaje
+cronológico de «toda una historia en un vídeo», el aire de tráiler (grano,
+destellos, golpes, partes en calma antes de los clímax) y la forma de la
+música.
+
+**Qué no tomé, a propósito:**
+- **Su marca.** Ni el nombre de la cuenta, ni el usuario, ni la insignia de
+  verificado, ni la marca de agua de Instagram. La cabecera es tuya: un
+  emblema dibujado en código, tu nombre y «a film made entirely in code».
+- **Los generadores de IA.** Lo entendí como «con tus herramientas», y las
+  mías son las de todo este trabajo: código. Además, era la regla del primer
+  encargo. En esta sesión hay conectores que generan imagen y vídeo, pero
+  gastan créditos de tu cuenta y no los usé sin preguntarte.
+- **La duración.** Un minuto en vez de tres. Cada plano se calcula píxel a
+  píxel; prefiero dieciséis planos cuidados a cuarenta de relleno. Si quieres
+  los tres minutos, la estructura lo admite: son más entradas en una lista.
+
+**El tema: la historia del universo.** Tiene lo mismo que hace funcionar a la
+referencia (una historia enorme, contada en orden, con momentos espectaculares)
+y se puede pintar entero con matemáticas: luz, fuego, gas, planetas, agua.
+
+## La idea
+
+Una sola: **13.800 millones de años en un minuto, del punto al punto.**
+
+Empieza con un punto de luz en la oscuridad y termina con la Tierra alejándose
+hasta ser un punto de luz azul. Entre medias, dieciséis planos en orden, cada
+uno con su fecha debajo.
+
+| Tiempo | Plano | Qué se ve |
+| --- | --- | --- |
+| 0,0 s | Antes del tiempo | Polvo en espiral cayendo hacia un punto que late. Medio tiempo de silencio. |
+| 4,8 s | El Big Bang | Destello blanco. Fuego que sale hacia la cámara, se enfría y queda en brasas. |
+| 9,6 s | Las primeras estrellas | Oscuridad; once estrellas se encienden una a una e iluminan el gas. |
+| 12,8 s | Las galaxias | 60.000 estrellas que se enrollan en una espiral. |
+| 17,6 s | Mueren estrellas | Una gigante roja hierve, se hunde y estalla en una nube de colores con su onda de choque. |
+| 20,8 s | Nace el Sol | Un disco de polvo con los huecos que abren los planetas al formarse. |
+| 24,0 s | La Luna | La Tierra fundida. Un planeta entra por la esquina, choca y la escupe en un chorro de roca. |
+| 28,8 s | Los primeros océanos | Tormenta sobre el mar; los rayos iluminan nubes y olas. |
+| 32,0 s | La vida | Una célula que se divide en dos, cuatro, ocho, bajo rayos de luz en el agua. |
+| 38,4 s | Los primeros bosques | Amanecer; los árboles crecen rama a rama. |
+| 41,6 s | El asteroide | Dos dinosaurios de cuello largo entre helechos arborescentes. Un meteoro cruza el cielo y cae tras el horizonte. |
+| 44,8 s | El fuego | Dos personas sentadas junto a una hoguera bajo la Vía Láctea. |
+| 48,0 s | Las ciudades | La Tierra de noche, y las luces encendiéndose por todo el planeta. |
+| 51,2 s | Al espacio | Un cohete despega y la cámara sube con él. |
+| 54,4 s | Hoy | La Tierra iluminada, alejándose hasta ser un punto. |
+| 57,6 s | Fin | El último golpe. COSMOS. |
+
+## Qué elegí y por qué
+
+**Un motor de render propio, sin imágenes.** La referencia tiene aspecto de
+cuadro o de película; el código no puede imitar eso dibujando formas planas.
+Escribí un pequeño motor (`src/cosmos/engine.ts`) que hace lo que haría una
+cámara: suma luz en coma flotante, con ruido fractal para el gas, el fuego,
+las nubes y el agua; esferas iluminadas para los planetas; siluetas
+antialias para los árboles, los dinosaurios, las personas y el cohete; y luego
+la «película»: resplandor, destello horizontal de lente, una curva de
+exposición de cine, sombras frías y luces cálidas, viñeta y grano. Cada
+fotograma sale solo de su número.
+
+**El formato de la referencia, en limpio.** 1080×1920 (la misma proporción
+que 720×1280, con más resolución) a 30 fps. Cabecera, pie de dos líneas, la
+franja de imagen en el mismo sitio, a escala. El negro de abajo, que en la
+referencia queda vacío, aquí lleva la fecha de cada plano y una línea de
+progreso que recorre los 13.800 millones de años.
+
+**El montaje, en la música.** 150 pulsos por minuto, como medí en la
+referencia: un tiempo dura 0,4 s, exactamente 12 fotogramas. Todos los cortes
+y golpes caen en fotogramas enteros, sin redondeo. Los planos duran entre 8 y
+16 tiempos (3,2 a 6,4 s), más largos que en la referencia porque aquí la
+imagen se mueve dentro del plano.
+
+**Una canción nueva con la forma de la referencia.** Re menor, tráiler: un
+zumbido que se carga, el golpe del Big Bang, campanas en calma (una por cada
+estrella que se enciende), un crescendo hasta la supernova, el choque de la
+Luna, truenos en los rayos de la tormenta, un tramo tranquilo para la vida,
+el asteroide, tambores en cada tiempo desde el fuego hasta el cohete, una
+melodía que sube y, al final, un acorde en Re mayor. Medido: −13,9 LUFS
+dentro del MP4 (la referencia, −14,1) y 12,1 LU de rango (la referencia, 16).
+
+**Los mismos instrumentos, otra forma.** El sintetizador estaba hecho para la
+forma de 33 tiempos de los títulos. Le añadí una segunda forma, «película»,
+en la que solo manda la partitura, incluidos los niveles, más un instrumento
+nuevo: el trueno. Las cinco pistas anteriores salen idénticas bit a bit.
+
+**Texto con una fuente del sistema.** Las piezas anteriores dibujaban sus
+letras como trazos. Esta tiene que escribir frases, así que usa Inter, que
+está instalada en esta máquina. No se descargó ningún archivo de fuente. En
+otra máquina sin Inter saldría con la fuente sans del sistema.
+
+## Qué descarté
+
+- **Copiar la cabecera de la referencia tal cual.** Era la marca de otra
+  persona.
+- **Usar generadores de imagen o vídeo.** Ver arriba.
+- **Tres minutos.** Ver arriba.
+- **Helechos de espina de pescado.** La primera versión del plano de los
+  dinosaurios eran tallos con hojitas rectas: parecían raspas. Ahora son
+  helechos arborescentes, con tronco y una corona de frondas que se arquean.
+- **Árboles sin nada delante en el plano del asteroide.** Sin dinosaurios, el
+  plano no decía «hace 66 millones de años» hasta leer la fecha. Con ellos, sí.
+- **Dos rayas en el cielo del fuego.** La primera Vía Láctea tenía una franja
+  oscura muy marcada y parecía dos focos. Ahora es una sola banda suave.
+- **Personas como tubos.** Las primeras siluetas junto al fuego parecían
+  morteros. Ahora están sentadas, encorvadas, con los brazos en las rodillas.
+
+## Qué cambió entre versiones
+
+Fotogramas revisados en esta parte: 304 propios, más 184 de la referencia.
+
+**Pasada 1 (90 fotogramas, toda la línea de tiempo dos veces).** La primera
+hoja salió casi toda negra: un error en el motor vaciaba las capas borrosas
+(gas, fuego, niebla) antes de sumarlas. Arreglado, salió el resto:
+- El polvo del principio no se veía. El Big Bang y el gas de las primeras
+  estrellas llenaban la pantalla de un color plano. La galaxia era un óvalo
+  beis: el brillo difuso tapaba los brazos. La supernova, una niebla rosa.
+- Dos formas oscuras raras. Las investigué en tamaño real: una era un hueco
+  en los escombros del choque (ningún fragmento salía más despacio que un
+  mínimo) y la otra, la cara nocturna de la Tierra. Arreglado.
+- Los helechos no aparecían. Probé las funciones de dibujo por separado y
+  funcionaban; el fallo era el helecho: cada tramo sumaba su curva a la del
+  anterior y se enroscaba hacia el suelo antes de asomar.
+- El fuego no tenía llama, las ciudades eran continentes dorados y la llama
+  del cohete casi no se veía.
+
+**Pasada 2 (63 fotogramas, uno por segundo y la composición vertical).**
+- El Big Bang seguía terminando en naranja plano. Causa: su núcleo blanco
+  crecía hasta llenar el cuadro. Ahora crece un momento y se apaga, y el
+  fuego se enfría hasta quedar en brasas, que enlazan con la oscuridad de las
+  primeras estrellas.
+- El asteroide entraba fuera de cuadro y el impacto era un cielo blanco.
+  Ahora cruza el cielo con cabeza brillante y cola; tras el golpe, el polvo
+  oscurece el cielo y la bola de fuego sube sobre el horizonte.
+- El brillo del choque de la Luna cubría todo el planeta; los casquetes de
+  hielo de la Tierra parecían tapas.
+
+**Pasada 3, sobre el MP4 (94 fotogramas, seguidos alrededor de cada corte y
+cada golpe).** Nada que arreglar. Los cinco destellos, los cortes y los
+textos caen donde deben.
+
+## Sincronía, comprobada
+
+- El audio dentro del MP4 está desplazado **0 muestras** respecto al WAV.
+- Los cinco golpes grandes (Big Bang, supernova, choque, asteroide, final):
+  el brillo de la franja salta de unos 20–140 a más de 200 exactamente en los
+  fotogramas calculados, 144, 576, 816, 1296 y 1728. Como un tiempo son 12
+  fotogramas justos, cada uno empieza a la vez que su sonido: 0,0 ms.
+- Los cuatro golpes aislados de la música caen a menos de 0,1 ms de la
+  rejilla.
+- De los trece cortes, doce se ven en el brillo medio justo en su fotograma.
+  El que falta (galaxia → gigante roja) tiene el mismo brillo medio a los dos
+  lados (43,6 y 44,0), pero el corte está ahí: se ve en las tiras de la
+  pasada 3.
+- El silencio antes del Big Bang queda 48,1 dB por debajo del golpe.
+
+## Lo que comprobé de que lo anterior sigue intacto
+
+Las cinco pistas anteriores que genera ahora el sintetizador tienen el mismo
+SHA-256 que antes de tocarlo. Sus MP4 no se han regenerado.
+
+## Lo que no pude comprobar
+
+No puedo oír. Esta música está medida, no escuchada.
+
+Y la referencia está hecha con IA generativa; esto está hecho con código. Se
+parece en formato, montaje, ritmo y tono, no en el detalle de cada imagen: un
+dinosaurio dibujado con líneas no es una pintura. Si quieres acercarte más a
+ese aspecto, la vía es usar un generador. Gasta créditos, así que eso lo
+decides tú.
+
+Como LUMEN y SPLASH, no se ve a tiempo real en Remotion Studio: hay que
+renderizarlo.
+
+## Cuánto tardó de verdad esta parte
+
+| Hora (UTC) | Hito |
+| --- | --- |
+| 16:15:07 | Empiezo. |
+| 16:15:31 | Referencia entera en hojas de contacto (184 fotogramas). |
+| 16:17:18 | Sonido de la referencia medido: tempo, sonoridad, forma. |
+| 16:20:33 | Tema y lista de planos decididos. |
+| 16:28:02 | Motor y dieciséis planos escritos. Pasada 1. |
+| 16:29:13 | Error del motor arreglado. Pasada 1, de nuevo. |
+| 16:35:59 | Arreglos de la pasada 1: dinosaurios, helechos, fuego. |
+| 16:39:06 | Partitura y sintetizador. Pistas anteriores idénticas. |
+| 16:41:53 | Composición vertical. |
+| 16:42:29 | Pasada 2. |
+| 16:44:55 | Arreglos de la pasada 2. |
+| 16:45:03 | Empieza el render: 4 min 57 s, 20,2 MB. |
+| 16:50:30 | Pasada 3, sobre el MP4. |
+| 16:53:21 | Este documento escrito. |
+
+**Total de la quinta parte: 38 min 14 s**, del encargo al documento terminado.
+Sumado a las cuatro primeras (2 h 22 min 19 s): 3 h 0 min 33 s de trabajo.
+
+Tiempos de máquina, medidos con `time` en 4 núcleos: sintetizar la pista
+4,1 s; un fotograma del motor, unos 0,18 s; el proceso completo (síntesis,
+1800 fotogramas verticales, unión y verificación) 4 min 57 s.

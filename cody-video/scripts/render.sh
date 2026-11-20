@@ -5,6 +5,7 @@
 #   scripts/render.sh cody-poirier   ->  out/cody-poirier.mp4   (30 s, the two joined)
 #   scripts/render.sh lumen          ->  out/lumen.mp4          (15 s, no letters)
 #   scripts/render.sh splash         ->  out/splash.mp4         (15 s, no letters, loud)
+#   scripts/render.sh cosmos         ->  out/cosmos.mp4         (60 s, vertical 1080x1920, 30 fps)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 NAME="${1:-cody}"
@@ -17,6 +18,7 @@ case "$NAME" in
   # CRF 16 the others use, this one comes out at 53 MB.
   lumen)        COMP=Lumen;       SECONDS_LONG=15; ENCODE=(--crf=20 --x264-preset=slow) ;;
   splash)       COMP=Splash;      SECONDS_LONG=15 ;;
+  cosmos)       COMP=Cosmos;      SECONDS_LONG=60; ENCODE=(--crf=20 --x264-preset=slow) ;;
   *) echo "unknown piece: $NAME" >&2; exit 1 ;;
 esac
 mkdir -p out
@@ -24,7 +26,7 @@ mkdir -p out
 echo "1/4  synthesizing the track"
 bun scripts/make-music.ts "$NAME"
 
-echo "2/4  rendering $((SECONDS_LONG * 60)) frames"
+echo "2/4  rendering $COMP"
 bunx remotion render "$COMP" "out/$NAME-picture.mp4" "${ENCODE[@]}" --log=error 2>&1 | grep -v -i -E "memory|docker" || true
 
 # Remotion pads the AAC stream to a whole number of audio frames (+19 ms).

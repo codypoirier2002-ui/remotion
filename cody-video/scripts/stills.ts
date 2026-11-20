@@ -1,46 +1,56 @@
 /**
- * Renders frames of LUMEN or SPLASH straight from their engines, without a
- * browser, and tiles them into labelled contact sheets. Same code as the
- * video, so this is the fast way to look at a change.
+ * Renders frames of LUMEN, SPLASH or COSMOS straight from their engines,
+ * without a browser, and tiles them into labelled contact sheets. Same code as
+ * the video, so this is the fast way to look at a change. (For COSMOS this is
+ * the picture band only, without the vertical frame around it.)
  *
- *   bun scripts/stills.ts <lumen|splash> <outdir> <frame,frame,...> [full]
+ *   bun scripts/stills.ts <lumen|splash|cosmos> <outdir> <frame,frame,...> [full]
  *
- * With `full`, every frame is also kept as a 1920x1080 PNG.
+ * With `full`, every frame is also kept as a full-size PNG.
  */
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { BH, BW } from "../src/cosmos/engine";
+import { renderCosmos } from "../src/cosmos/shots";
+import { C_BEAT, C_FPS } from "../src/cosmos/timeline";
 import { H, W, renderLumen } from "../src/lumen/engine";
 import { BEAT_SEC, FPS } from "../src/score";
 import { renderSplash } from "../src/splash/scene";
 
 const [piece, outDir, frameList, mode] = process.argv.slice(2);
-const render = { lumen: renderLumen, splash: renderSplash }[piece];
-if (!render || !outDir || !frameList)
+const PIECES = {
+  lumen: { render: renderLumen, w: W, h: H, fps: FPS, beat: BEAT_SEC },
+  splash: { render: renderSplash, w: W, h: H, fps: FPS, beat: BEAT_SEC },
+  cosmos: { render: renderCosmos, w: BW, h: BH, fps: C_FPS, beat: C_BEAT },
+};
+const chosen = PIECES[piece as keyof typeof PIECES];
+if (!chosen || !outDir || !frameList)
   throw new Error(
-    "usage: stills.ts <lumen|splash> <outdir> <frame,frame,...> [full]",
+    "usage: stills.ts <lumen|splash|cosmos> <outdir> <frame,frame,...> [full]",
   );
+const { render, w: WW, h: HH } = chosen;
 const frames = frameList.split(",").map(Number);
 rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
 
-const rgba = new Uint8ClampedArray(W * H * 4);
-const rgb = Buffer.alloc(W * H * 3);
-const header = Buffer.from(`P6\n${W} ${H}\n255\n`);
+const rgba = new Uint8ClampedArray(WW * HH * 4);
+const rgb = Buffer.alloc(WW * HH * 3);
+const header = Buffer.from(`P6\n${WW} ${HH}\n255\n`);
 const tiles: string[] = [];
 let spent = 0;
 frames.forEach((frame, index) => {
   const started = performance.now();
   render(frame, rgba);
   spent += performance.now() - started;
-  for (let p = 0, q = 0; p < W * H * 4; p += 4, q += 3) {
+  for (let p = 0, q = 0; p < WW * HH * 4; p += 4, q += 3) {
     rgb[q] = rgba[p];
     rgb[q + 1] = rgba[p + 1];
     rgb[q + 2] = rgba[p + 2];
   }
   const ppm = join(outDir, "frame.ppm");
   writeFileSync(ppm, Buffer.concat([header, rgb]));
-  const label = ` f${frame}  ${(frame / FPS).toFixed(2)}s  beat ${(frame / FPS / BEAT_SEC).toFixed(2)} `;
+  const label = ` f${frame}  ${(frame / chosen.fps).toFixed(2)}s  beat ${(frame / chosen.fps / chosen.beat).toFixed(2)} `;
   const tile = join(outDir, `t_${String(index).padStart(4, "0")}.png`);
   if (mode === "full")
     execFileSync("convert", [

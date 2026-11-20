@@ -2,6 +2,8 @@ import React from "react";
 import { Composition, Still } from "remotion";
 import { Cody } from "./Cody";
 import { CodyPoirier } from "./CodyPoirier";
+import { Cosmos } from "./Cosmos";
+import { C_FPS, C_FRAMES } from "./cosmos/timeline";
 import { Lumen } from "./Lumen";
 import { Poirier } from "./Poirier";
 import { DURATION_FRAMES, FPS } from "./score";
@@ -50,6 +52,14 @@ export const RemotionRoot: React.FC = () => {
         fps={FPS}
         width={1920}
         height={1080}
+      />
+      <Composition
+        id="Cosmos"
+        component={Cosmos}
+        durationInFrames={C_FRAMES}
+        fps={C_FPS}
+        width={1080}
+        height={1920}
       />
       <Still id="Specimen" component={Specimen} width={1920} height={1080} />
       <Still
