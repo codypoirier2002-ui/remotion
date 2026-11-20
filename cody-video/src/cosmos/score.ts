@@ -417,6 +417,7 @@ export const COSMOS_SCORE: Score = {
     { beat: 108, vel: 1 },
     { beat: 109.5, vel: 0.6 },
   ],
+  SFX: [],
   /** Overall level through the film, [beat, gain]; a repeated beat is a step. */
   GAIN: [
     [0, 0.85],

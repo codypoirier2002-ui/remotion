@@ -344,5 +344,6 @@ export const SPLASH_SCORE: Score = {
   ],
   RISERS: [],
   THUNDER: [],
+  SFX: [],
   GAIN: [],
 };

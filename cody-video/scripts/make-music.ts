@@ -2,7 +2,7 @@
  * Synthesizes the soundtrack from nothing but math: oscillators, noise, filters,
  * envelopes, a reverb and a delay. No samples, no audio files read.
  *
- *   bun scripts/make-music.ts [cody | poirier | cody-poirier | lumen | splash | cosmos]
+ *   bun scripts/make-music.ts [cody | poirier | cody-poirier | lumen | splash | cosmos | deep]
  *
  * Every note comes from src/score*.ts, the same files the visuals read.
  */
@@ -10,6 +10,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { COSMOS_SCORE } from "../src/cosmos/score";
 import { C_BEAT, C_SECONDS } from "../src/cosmos/timeline";
+import { DEEP_SCORE } from "../src/deep/score";
+import { D_BEAT, D_SECONDS } from "../src/deep/timeline";
 import * as S from "../src/score";
 import { CODY_SCORE, type Score } from "../src/score";
 import { LUMEN_SCORE } from "../src/score-lumen";
@@ -26,6 +28,7 @@ import { SPLASH_SCORE } from "../src/score-splash";
  *   bun scripts/make-music.ts lumen          ->  public/lumen-track.wav
  *   bun scripts/make-music.ts splash         ->  public/splash-track.wav
  *   bun scripts/make-music.ts cosmos         ->  public/cosmos-track.wav
+ *   bun scripts/make-music.ts deep           ->  public/deep-track.wav
  *
  * `pickup` is what happens in the beat before bar 1:
  *   dot     the dot whistles down, thuds and charges up
@@ -73,6 +76,12 @@ const PIECES: Record<string, Piece> = {
     parts: [{ score: COSMOS_SCORE, pickup: "none", tonic: [] }],
     beat: C_BEAT,
     seconds: C_SECONDS,
+  },
+  deep: {
+    form: "film",
+    parts: [{ score: DEEP_SCORE, pickup: "none", tonic: [] }],
+    beat: D_BEAT,
+    seconds: D_SECONDS,
   },
 };
 const pieceName = process.argv[2] ?? "cody";
@@ -613,6 +622,315 @@ function thunder(t0: number, vel: number) {
   }
 }
 
+// ================================================================ sound effects
+// Each one is a thing that happens on screen; the score says when.
+
+/** A low drone that breathes. */
+function hum(tA: number, tB: number, hz: number, vel: number) {
+  const i0 = Math.floor(tA * SR);
+  const len = Math.floor((tB - tA) * SR);
+  const lpL = new SVF();
+  const lpR = new SVF();
+  let p1 = 0;
+  let p2 = 0;
+  let p3 = 0;
+  for (let i = 0; i < len && i0 + i < N; i++) {
+    const t = i / SR;
+    const breathe = 0.75 + 0.25 * Math.sin(TAU * 0.31 * t - 1.2);
+    const env =
+      Math.min(1, t / 1.2) * Math.min(1, (len - i) / (SR * 0.03)) * breathe;
+    p1 += (TAU * hz) / SR;
+    p2 += (TAU * hz * 2.003) / SR;
+    p3 += (TAU * hz * 3.01) / SR;
+    const tone = Math.sin(p1) + 0.45 * Math.sin(p2) + 0.18 * Math.sin(p3);
+    lpL.tick(rnd(), 220, 0.9);
+    lpR.tick(rnd(), 240, 0.9);
+    const v = Math.tanh(tone * 0.9) * env * vel * 0.55;
+    fxBus.l[i0 + i] += v + lpL.lp * env * vel * 0.25;
+    fxBus.r[i0 + i] += v + lpR.lp * env * vel * 0.25;
+    revSend.l[i0 + i] += v * 0.08;
+    revSend.r[i0 + i] += v * 0.08;
+  }
+}
+
+/** Lub-dub. */
+function heartbeat(t0: number, vel: number) {
+  for (const [dt, k, f] of [
+    [0, 1, 52],
+    [0.24, 0.7, 60],
+  ]) {
+    const i0 = Math.floor((t0 + dt) * SR);
+    const len = Math.floor(SR * 0.35);
+    const lp = new SVF();
+    let ph = 0;
+    for (let i = 0; i < len && i0 + i < N; i++) {
+      const t = i / SR;
+      ph += (TAU * (f + 35 * Math.exp(-t / 0.04))) / SR;
+      const env = Math.min(1, t / 0.004) * Math.exp(-t / 0.09);
+      // a soft, muffled skin
+      lp.tick(rnd(), 400, 0.7);
+      const v =
+        (Math.tanh(Math.sin(ph) * 1.8) * env + lp.lp * env * 0.3) *
+        vel *
+        k *
+        0.9;
+      fxBus.l[i0 + i] += v;
+      fxBus.r[i0 + i] += v;
+      revSend.l[i0 + i] += v * 0.15;
+      revSend.r[i0 + i] += v * 0.15;
+    }
+  }
+}
+
+/** The crack, the sub drop and the rumble of something enormous starting. */
+function bang(t0: number, vel: number) {
+  const i0 = Math.floor(t0 * SR);
+  const len = Math.floor(SR * 5);
+  const hp = new SVF();
+  const lpL = new SVF();
+  const lpR = new SVF();
+  let ph = 0;
+  for (let i = 0; i < len && i0 + i < N; i++) {
+    const t = i / SR;
+    hp.tick(rnd(), 1200, 0.7);
+    const crack = hp.hp * Math.min(1, t / 0.0005) * Math.exp(-t / 0.05) * 1.4;
+    ph += (TAU * (28 + 95 * Math.exp(-t / 0.5))) / SR;
+    const sub =
+      Math.tanh(Math.sin(ph) * 2.2) *
+      Math.min(1, t / 0.002) *
+      Math.exp(-t / 1.0) *
+      1.1;
+    // the rumble darkens as it rolls away
+    const fc = 70 + 900 * Math.exp(-t / 0.35);
+    lpL.tick(rnd(), fc, 0.8);
+    lpR.tick(rnd(), fc * 1.1, 0.8);
+    const rum = Math.min(1, t / 0.01) * Math.exp(-t / 1.0) * 2.2;
+    const l = (crack + sub + lpL.lp * rum) * vel;
+    const r = (crack + sub + lpR.lp * rum) * vel;
+    fxBus.l[i0 + i] += l;
+    fxBus.r[i0 + i] += r;
+    revSend.l[i0 + i] += (crack * 0.4 + lpL.lp * rum * 0.3) * vel;
+    revSend.r[i0 + i] += (crack * 0.4 + lpR.lp * rum * 0.3) * vel;
+  }
+}
+
+/** A wall of fire rushing at the camera: a roar that opens up and a tone that climbs. */
+function approach(tA: number, tB: number, vel: number) {
+  const i0 = Math.floor(tA * SR);
+  const len = Math.floor((tB - tA) * SR);
+  const lpL = new SVF();
+  const lpR = new SVF();
+  let ph = 0;
+  for (let i = 0; i < len && i0 + i < N; i++) {
+    const x = i / len;
+    const fc = 150 * Math.pow(30, x * x);
+    lpL.tick(rnd(), fc, 0.9);
+    lpR.tick(rnd(), fc * 1.08, 0.9);
+    ph += (TAU * 38 * Math.pow(2, x * 1.2)) / SR;
+    const tone = Math.tanh(Math.sin(ph) * 2) * 0.5;
+    // it draws breath for a moment just before it arrives
+    const suck = Math.min(1, (len - i) / (SR * 0.07));
+    const amp = Math.pow(x, 2.2) * vel * suck * suck;
+    const l = (lpL.lp * 1.8 + tone) * amp;
+    const r = (lpR.lp * 1.8 + tone) * amp;
+    fxBus.l[i0 + i] += l;
+    fxBus.r[i0 + i] += r;
+    revSend.l[i0 + i] += l * 0.2;
+    revSend.r[i0 + i] += r * 0.2;
+  }
+}
+
+/** The inside of the fire: a churning roar that surges on `surges` (seconds). */
+function roar(tA: number, tB: number, vel: number, surges: number[]) {
+  const i0 = Math.floor(tA * SR);
+  const len = Math.floor((tB - tA) * SR);
+  const lpL = new SVF();
+  const lpR = new SVF();
+  const hsL = new SVF();
+  const hsR = new SVF();
+  for (let i = 0; i < len && i0 + i < N; i++) {
+    const t = i / SR;
+    const now = tA + t;
+    const churn =
+      0.7 + 0.3 * Math.sin(TAU * 0.37 * t) * Math.sin(TAU * 0.13 * t + 1.1);
+    // on each drum the fire draws in, so the drum is heard, then surges
+    let surge = 0;
+    let dip = 1;
+    for (const s of surges)
+      if (now > s) {
+        const d = now - s;
+        surge += Math.exp(-d / 0.35) * Math.min(1, d / 0.25);
+        dip *= 1 - 0.7 * Math.exp(-d / 0.07);
+      }
+    surge = Math.min(1.5, surge);
+    const fc = 260 + 500 * surge + 120 * churn;
+    lpL.tick(rnd(), fc, 0.85);
+    lpR.tick(rnd(), fc * 1.12, 0.85);
+    hsL.tick(rnd(), 2800, 1.2);
+    hsR.tick(rnd(), 3100, 1.2);
+    const env = Math.min(1, t / 0.04) * Math.min(1, (len - i) / (SR * 0.9));
+    const g = env * vel * churn * (1 + 0.5 * surge) * dip;
+    const l = (lpL.lp * 2.2 + hsL.bp * 0.18) * g;
+    const r = (lpR.lp * 2.2 + hsR.bp * 0.18) * g;
+    fxBus.l[i0 + i] += l;
+    fxBus.r[i0 + i] += r;
+    revSend.l[i0 + i] += l * 0.12;
+    revSend.r[i0 + i] += r * 0.12;
+  }
+}
+
+/** Something huge passing close by on one side, loudest at t0. */
+function whoosh(t0: number, side: number, vel: number) {
+  const pre = 0.9;
+  const post = 0.7;
+  const i0 = Math.floor((t0 - pre) * SR);
+  const len = Math.floor((pre + post) * SR);
+  const bpL = new SVF();
+  const bpR = new SVF();
+  const lp = new SVF();
+  for (let i = 0; i < len && i0 + i < N; i++) {
+    if (i0 + i < 0) continue;
+    const t = i / SR - pre;
+    // louder as it nears; higher as it comes, lower as it goes
+    const near = 1 / (1 + (t / (t < 0 ? 0.22 : 0.3)) ** 2);
+    const fc = t < 0 ? 500 + 2600 * near : 350 + 2750 * near;
+    // it comes from ahead and is gone past its side
+    const [gl, gr] = pan(side * Math.min(1, 0.15 + 0.85 * (t < 0 ? near : 1)));
+    bpL.tick(rnd(), fc, 1.6);
+    bpR.tick(rnd(), fc * 1.05, 1.6);
+    lp.tick(rnd(), 180 + 200 * near, 0.8);
+    const fade =
+      Math.min(1, i / (SR * 0.05)) * Math.min(1, (len - i) / (SR * 0.05));
+    const g = near * vel * fade;
+    const l = (bpL.bp * 1.4 + lp.lp * 0.7) * g * gl;
+    const r = (bpR.bp * 1.4 + lp.lp * 0.7) * g * gr;
+    fxBus.l[i0 + i] += l;
+    fxBus.r[i0 + i] += r;
+    revSend.l[i0 + i] += l * 0.15;
+    revSend.r[i0 + i] += r * 0.15;
+  }
+}
+
+/** A big drum in a big room. */
+function taiko(t0: number, vel: number) {
+  const i0 = Math.floor(t0 * SR);
+  const len = Math.floor(SR * 1.2);
+  const bp = new SVF();
+  const lp = new SVF();
+  let ph = 0;
+  for (let i = 0; i < len && i0 + i < N; i++) {
+    const t = i / SR;
+    ph += (TAU * (62 + 110 * Math.exp(-t / 0.025))) / SR;
+    const body =
+      Math.tanh(Math.sin(ph) * 1.6) *
+      Math.min(1, t / 0.001) *
+      Math.exp(-t / 0.3);
+    bp.tick(rnd(), 900, 1.4);
+    lp.tick(rnd(), 120, 0.7);
+    const v =
+      (body +
+        bp.bp * Math.exp(-t / 0.025) * 0.9 +
+        lp.lp * Math.exp(-t / 0.5) * 1.2) *
+      vel *
+      1.5;
+    fxBus.l[i0 + i] += v;
+    fxBus.r[i0 + i] += v;
+    revSend.l[i0 + i] += v * 0.18;
+    revSend.r[i0 + i] += v * 0.18;
+  }
+}
+
+/** Fire crackling: clicks and pops at random, thinning out at the end. */
+function crackle(tA: number, tB: number, vel: number, rate: number) {
+  let t = tA;
+  for (;;) {
+    t += -Math.log(1 - rnd01() * 0.999) / rate;
+    if (t >= tB) break;
+    const x = (t - tA) / (tB - tA);
+    if (rnd01() > Math.min(1, (1 - x) / 0.25)) continue;
+    const pop = rnd01() < 0.12;
+    const dur = pop ? 0.008 + 0.01 * rnd01() : 0.0006 + 0.003 * rnd01();
+    const fc = pop ? 600 + 900 * rnd01() : 2000 + 5000 * rnd01();
+    const a = vel * (0.15 + 0.85 * rnd01() ** 3) * (pop ? 1.4 : 1);
+    const [gl, gr] = pan(rnd() * 0.8);
+    const f = new SVF();
+    const i0 = Math.floor(t * SR);
+    const len = Math.floor(dur * SR * 4);
+    for (let i = 0; i < len && i0 + i < N; i++) {
+      f.tick(rnd(), fc, 1.2);
+      const v = f.bp * a * Math.exp(-i / SR / dur);
+      fxBus.l[i0 + i] += v * gl;
+      fxBus.r[i0 + i] += v * gr;
+      revSend.l[i0 + i] += v * 0.1;
+      revSend.r[i0 + i] += v * 0.1;
+    }
+  }
+}
+
+/** Tiny glints of sound at random, between lo and hi Hz. */
+function glints(
+  tA: number,
+  tB: number,
+  vel: number,
+  rate: number,
+  lo: number,
+  hi: number,
+) {
+  let t = tA;
+  for (;;) {
+    t += -Math.log(1 - rnd01() * 0.999) / rate;
+    if (t >= tB) break;
+    const f = lo * Math.pow(hi / lo, rnd01());
+    const dec = 0.02 + 0.06 * rnd01();
+    const a = vel * (0.2 + 0.8 * rnd01() ** 2);
+    const [gl, gr] = pan(rnd() * 0.9);
+    const i0 = Math.floor(t * SR);
+    const len = Math.floor(dec * 6 * SR);
+    let ph = 0;
+    for (let i = 0; i < len && i0 + i < N; i++) {
+      const tt = i / SR;
+      ph += (TAU * f) / SR;
+      const v =
+        Math.sin(ph) * a * Math.min(1, tt / 0.0005) * Math.exp(-tt / dec);
+      fxBus.l[i0 + i] += v * gl;
+      fxBus.r[i0 + i] += v * gr;
+      dlySend.l[i0 + i] += v * 0.3;
+      dlySend.r[i0 + i] += v * 0.3;
+      revSend.l[i0 + i] += v * 0.4;
+      revSend.r[i0 + i] += v * 0.4;
+    }
+  }
+}
+
+/** A high cluster of tones, beating slowly, spread wide. */
+function shimmer(tA: number, tB: number, vel: number, hz: number) {
+  const ratios = [1, 1.5, 2.002, 2.997, 4.01];
+  const ph = ratios.map(() => 0);
+  const i0 = Math.floor(tA * SR);
+  const len = Math.floor((tB - tA) * SR);
+  for (let i = 0; i < len && i0 + i < N; i++) {
+    const x = i / len;
+    const t = i / SR;
+    const env = Math.min(1, x / 0.35) * Math.min(1, (1 - x) / 0.3);
+    let l = 0;
+    let r = 0;
+    for (let k = 0; k < ratios.length; k++) {
+      ph[k] += (TAU * hz * ratios[k]) / SR;
+      const trem = 0.6 + 0.4 * Math.sin(TAU * (0.7 + 0.37 * k) * t + k);
+      const s = (Math.sin(ph[k]) * trem) / (1 + k * 0.6);
+      l += s * (k % 2 ? 0.6 : 1);
+      r += s * (k % 2 ? 1 : 0.6);
+    }
+    const g = env * vel * 0.3;
+    fxBus.l[i0 + i] += l * g;
+    fxBus.r[i0 + i] += r * g;
+    dlySend.l[i0 + i] += l * g * 0.2;
+    dlySend.r[i0 + i] += r * g * 0.2;
+    revSend.l[i0 + i] += l * g * 0.5;
+    revSend.r[i0 + i] += r * g * 0.5;
+  }
+}
+
 // ================================================================ play the score
 parts.forEach((part, index) => {
   const P = part.score;
@@ -664,6 +982,28 @@ parts.forEach((part, index) => {
       toneRiser(sec(at + r.from), sec(at + r.to), r.tone, r.lo, r.hi, 0);
   }
   for (const th of P.THUNDER) thunder(sec(at + th.beat), th.vel);
+  for (const fx of P.SFX) {
+    if (fx.kind === "hum")
+      hum(sec(at + fx.from), sec(at + fx.to), fx.hz, fx.vel);
+    else if (fx.kind === "heartbeat") heartbeat(sec(at + fx.beat), fx.vel);
+    else if (fx.kind === "bang") bang(sec(at + fx.beat), fx.vel);
+    else if (fx.kind === "approach")
+      approach(sec(at + fx.from), sec(at + fx.to), fx.vel);
+    else if (fx.kind === "roar")
+      roar(
+        sec(at + fx.from),
+        sec(at + fx.to),
+        fx.vel,
+        fx.surges.map((b) => sec(at + b)),
+      );
+    else if (fx.kind === "whoosh") whoosh(sec(at + fx.beat), fx.side, fx.vel);
+    else if (fx.kind === "taiko") taiko(sec(at + fx.beat), fx.vel);
+    else if (fx.kind === "crackle")
+      crackle(sec(at + fx.from), sec(at + fx.to), fx.vel, fx.rate);
+    else if (fx.kind === "glints")
+      glints(sec(at + fx.from), sec(at + fx.to), fx.vel, fx.rate, fx.lo, fx.hi);
+    else shimmer(sec(at + fx.from), sec(at + fx.to), fx.vel, fx.hz);
+  }
   if (piece.form === "film") return;
 
   if (part.pickup === "swell") {

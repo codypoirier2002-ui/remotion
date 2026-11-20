@@ -1187,3 +1187,293 @@ amarillo; la hice más oscura abajo y le puse una sombra al texto.
 
 **Total de la sexta parte: 18 min 31 s**, del encargo al documento terminado.
 Sumado a las cinco primeras (3 h 0 min 33 s): 3 h 19 min 4 s de trabajo.
+
+# Séptima parte: COSMOS a fondo — plano 1, el Big Bang
+
+## Qué se pidió y cómo lo entendí
+
+Rehacer COSMOS en horizontal y en 60 segundos, pero a fondo en vez de a lo
+ancho: seis momentos de diez segundos en vez de dieciséis planos. El listón:
+cualquier fotograma, parado a pantalla completa, tiene que parecer un
+fotograma de película y no un diagrama. Cada plano con primer término, término
+medio y fondo moviéndose a distinta velocidad, una luz que viene de algún
+sitio y proyecta sombras, textura en todas las superficies y cosas pequeñas
+que siguen moviéndose cuando la acción principal ha terminado. Cada momento
+con sus propios efectos de sonido, sincronizados con lo que se ve.
+
+Y el método: un plano cada vez. Terminar el primero, mandarte el clip y
+**esperar tus notas** antes de empezar el siguiente. Para cada plano, apuntar
+qué tendría la versión de un estudio de efectos profesional que la mía no
+tiene, y cerrar el hueco más grande antes de darlo por terminado.
+
+Esta parte es solo el plano 1. Los otros cinco se renderizan en negro hasta
+que lleguen tus notas.
+
+## Los seis momentos
+
+Elegí los seis que pueden ser más espectaculares, en orden:
+
+| Tiempo | Momento |
+| --- | --- |
+| 0–10 s | El Big Bang |
+| 10–20 s | La primera galaxia |
+| 20–30 s | Una estrella que muere |
+| 30–40 s | Theia choca con la Tierra |
+| 40–50 s | El asteroide |
+| 50–60 s | El punto azul pálido |
+
+**24 fps, como el cine, y 144 pulsos por minuto**: así un pulso dura
+exactamente 10 fotogramas y cada plano son exactamente 24 pulsos. La imagen y
+la música leen los mismos instantes de `src/deep/timeline.ts`; un golpe no
+puede caer medio fotograma fuera de sitio porque no hay medio fotograma.
+
+## El plano 1, momento a momento
+
+| Pulso | Segundo | Qué se ve | Qué suena |
+| --- | --- | --- | --- |
+| 0–5 | 0,0 s | Un punto en la oscuridad que late tres veces; una espuma de chispas a su alrededor y destellos lejanos en el vacío. | Un zumbido grave que respira, un latido en cada pulso del punto, destellos agudos. |
+| 4,75 | 2,0 s | El punto lo atrae todo hacia sí. | Una inspiración que sube… |
+| 5,5–6 | 2,3 s | Nada. Negro. | …y se corta en seco: medio pulso de silencio total. |
+| 6 | 2,5 s | El estallido: destello, y una bola de fuego que crece hacia la cámara. | Un chasquido, una caída de graves, un acorde de metales, un rugido que se acerca. |
+| 8 | 3,3 s | El fuego llega a la cámara y nos traga. | Un instante de vacío y el golpe; empieza el rugido de dentro del fuego. |
+| 8–18 | 3,3–7,5 s | Dentro del fuego: filamentos, humo negro, el núcleo que brilla y proyecta rayos, polvo que brilla a su luz. Seis lenguas de fuego pasan rozando la cámara. | Un tambor grande en cada destello del núcleo; un silbido que pasa por su lado en cada lengua; crepitar. |
+| 18–21,5 | 7,5–9,0 s | La primera luz: el humo se abre en nubes oscuras con bordes encendidos contra un cielo naranja. | El rugido muere; un acorde cálido y cuatro campanas. |
+| 21,5–23 | 9,0–9,6 s | Las edades oscuras: el cielo se apaga, queda una red de hilos oscuros. | Vuelve el zumbido del principio. |
+| 23–24 | 9,6–10 s | La primera estrella se enciende donde estaba el punto, y su luz corre por los hilos de gas. | Un latido, una campana alta, destellos que se alejan. |
+
+Rótulos: «13.8 billion years ago / The Big Bang» dentro del fuego y «380,000
+years later / First light» en la primera luz, que se va antes de las edades
+oscuras. Abajo, la línea de tiempo de
+toda la película (en este clip llega a un sexto).
+
+## Qué elegí y por qué
+
+**Un motor nuevo, más profundo que el de COSMOS** (`src/deep/`). El de COSMOS
+pintaba en 2D con trucos; este calcula la luz en 3D:
+
+- **Volúmenes de verdad.** Para cada píxel se lanza un rayo desde la cámara a
+  través del fuego (`volume.ts`). En cada paso, el medio emite su propia luz y
+  dispersa la de una fuente en el centro, con una función de fase que manda la
+  luz sobre todo hacia delante, como el humo real.
+- **Sombras de verdad.** Una rejilla de 96×96 direcciones × 56 distancias
+  guarda cuánta luz del centro sobrevive hasta cada punto. Un grumo denso
+  oscurece todo lo que hay detrás y la luz sale en rayos por los huecos.
+- **Detalle que no se convierte en ruido.** El ruido fractal sale de una
+  textura de 128³ horneada una vez (mucho más barata que calcularlo), y cada
+  paso del rayo solo usa las octavas que es capaz de resolver: más finas
+  serían arena.
+- **Desenfoque de movimiento y de foco.** El fuego se expande desde un punto,
+  así que su desenfoque de movimiento se calcula analíticamente (cada punto se
+  mueve hacia fuera en proporción a su distancia y su profundidad). Las
+  chispas, el polvo y las brasas tienen profundidad de campo de verdad.
+- **Acabado de película:** bloom en seis niveles, halación roja, destello
+  anamórfico, fantasmas de lente, calima, aberración cromática, viñeta, virado
+  de sombras y luces, una curva que conserva el tono (un naranja muy brillante
+  sigue naranja en vez de volverse blanco) y grano.
+
+**La primera estrella, hecha de puntos y no de volumen.** Los hilos de gas que
+ilumina son 104.352 puntos repartidos en 13 hilos: siete que llegan a la
+estrella y seis que pasan cerca. Cada hilo son varias fibras que se enroscan,
+se separan y se juntan, con grumos a lo largo y una bruma fina alrededor. Así
+están nítidos a cualquier distancia. Su luz cae con la distancia a la estrella
+y solo llega hasta donde ha llegado el frente de luz, que avanza 22 unidades
+por segundo: se ve la luz correr por los hilos.
+
+**La primera luz, a contraluz.** En vez de una niebla naranja, el humo se queda
+en sus filamentos, se vuelve denso y emite donde es fino: los bordes de las
+nubes brillan contra el cielo, como las nubes delante del sol.
+
+**El sonido, todo sintetizado.** Diez efectos nuevos en el mismo sintetizador
+de siempre (`scripts/make-music.ts`): zumbido, latido, estallido, rugido que se
+acerca, rugido de dentro del fuego, silbido de algo que pasa, tambor grande,
+crepitar, destellos y un brillo de tonos agudos. La partitura (`src/deep/score.ts`)
+está en fa menor: Fa menor en el estallido, Re♭ al entrar en el fuego, Si♭
+menor, Do, La♭ mayor en la primera luz y Fa mayor en la primera estrella.
+
+## Qué descarté
+
+- **Una onda de choque como velo.** Una capa esférica fina alrededor de la
+  bola de fuego: se veía como un velo gris delante de todo. La sustituí por un
+  pico de exposición en el destello.
+- **El vibrado aleatorio de los rayos.** Lanzar cada rayo desde un punto al
+  azar para romper las franjas: daba arena que hervía de un fotograma a otro.
+  Un experimento lo aisló (con y sin lenguas, con y sin vibrado). Lo cambié por
+  un desplazamiento suave y fijo en el tiempo: ni franjas ni arena.
+- **Los «radios» de volumen hacia la primera estrella.** Ocho hilos densos de
+  volumen: la estrella se veía como un resplandor enorme con un agujero negro
+  al lado. No era un fallo de cálculo (lo medí: ni un NaN, ni un negativo):
+  era espacio vacío junto a una estrella que iluminaba todo lo demás con una
+  fuerza absurda. Los cambié por los hilos de puntos.
+- **Volúmenes al doble de resolución.** Ver «El hueco más grande», abajo.
+
+## Qué cambió entre versiones
+
+Veinte rondas de fotogramas de prueba (`d0` a `d19`), más las del hueco:
+
+1. **Todo quemado.** La primera versión estaba sobreexpuesta y el fuego era
+   casi opaco. Medí los niveles de luz y recalibré densidad, brillo y luz, con
+   más huecos.
+2. **La red cósmica demasiado densa.** Pasó a ser hilos donde se cruzan dos
+   crestas de ruido, nueve veces más finos.
+3. **Franjas y arena.** Ver «Qué descarté».
+4. **Color melocotón.** La curva de tonos llevaba el naranja brillante al
+   beige. La cambié por una que trabaja sobre el brillo y conserva el tono, y
+   una rampa de color de fuego hecha a mano.
+5. **La superficie de la bola de fuego eran fideos.** Desde fuera, el calor
+   sale ahora de celdas grandes que hierven, no de filamentos.
+6. **La primera estrella.** Resplandor → agujero → cables → hilos de gas (ver
+   arriba).
+7. **La primera luz.** Niebla naranja borrosa → nubes oscuras con bordes
+   encendidos.
+8. **El sonido**, medido (ver abajo): los tambores no se oían bajo el rugido;
+   los silbidos se movían poco de lado; las campanas de la primera luz quedaban
+   tapadas por el acorde.
+9. **El rótulo.** En el primer MP4, «First light» seguía en pantalla durante
+   las edades oscuras y cuando se enciende la primera estrella, que no es la
+   primera luz. Ahora se va antes de las edades oscuras, y lo volví a
+   renderizar.
+
+## Qué tendría la versión de un estudio de efectos que la mía no tiene
+
+Lo apunté mirando los fotogramas a tamaño real, de mayor a menor:
+
+1. **Una simulación de fluidos de verdad.** Un estudio simularía el fuego
+   (pyro): remolinos que se enrollan sobre sí mismos y evolucionan con la
+   física. El mío es ruido que hierve: el movimiento es creíble, pero no es un
+   fluido.
+2. **Detalle fino en los volúmenes.** Su fuego tiene hilos finísimos y bordes
+   nítidos; el mío, en el término medio y el fondo, es blando.
+3. **Sonido grabado.** Fuego, explosiones y silbidos de librería, diseñados y
+   mezclados escuchando, con canal de graves propio. El mío es síntesis
+   mezclada midiendo, porque no oigo.
+4. **Imagen lechosa.** Un etalonador pondría negros de verdad en el humo.
+   Medido: dentro del fuego (fotograma 120) el 1 % más oscuro de la imagen
+   estaba en 55 sobre 255, y en la primera luz (fotograma 198) en 94. No había
+   nada oscuro.
+5. **Dispersión múltiple.** El fuego real se ilumina a sí mismo; el mío
+   dispersa la luz una sola vez, desde una sola fuente.
+6. **Una cámara con operador.** Cambios de foco, respiración de la lente; la
+   mía orbita y da sacudidas.
+
+**Los huecos 1 y 3 no se pueden cerrar con estas reglas**: una simulación de
+fluidos a esta resolución en una CPU tardaría horas por fotograma, y el sonido
+grabado está fuera por la regla de solo código.
+
+## El hueco más grande que cerré
+
+Probé primero el 2, porque parecía el más grande de los que se pueden tocar, y
+medí antes de quedármelo:
+
+- **Volúmenes al doble de píxeles** (960×540 en vez de 640×360): 2,1 veces más
+  lento (7,1 → 14,9 s por fotograma) y la nitidez, medida con un laplaciano
+  sobre la imagen reducida a la mitad para quitar el grano, cambió entre 0 y
+  +1 %. No era la resolución: el detalle lo limita cuántas octavas de ruido
+  puede resolver cada paso del rayo.
+- **Pasos más finos cerca de la cámara y una o dos octavas más**: 1,7 veces
+  más lento, otra vez entre −1 y +1 %. Para que se notara habría que hacer los
+  pasos lejanos diez veces más finos: cientos de pasos por rayo.
+
+Las dos, descartadas. Así que el hueco más grande de los que sí se cerraban
+era el 4, **la imagen lechosa**, y lo cerré con un etalonaje: contraste
+alrededor del brillo medio de cada fotograma (la media de su logaritmo), con
+un tope para no quemar las luces, y menos velo de bloom. Medido sobre los
+mismos fotogramas:
+
+| Fotograma | 1 % más oscuro, antes → después | 99 % más claro, antes → después |
+| --- | --- | --- |
+| 120, dentro del fuego | 55 → 29 | 210 → 217 |
+| 156, dentro del fuego | 10 → 2 | 163 → 212 |
+| 198, primera luz | 94 → 51 | 189 → 202 |
+
+Ahora el humo tiene bolsas negras, los filamentos se separan del fondo y las
+nubes de la primera luz se leen como siluetas. Antes de la entrada en el fuego
+(pulso 7,5) el etalonaje vale 1 y nada cambia.
+
+## El sonido, medido
+
+No oigo: todo esto está medido sobre el WAV, no escuchado.
+
+- **El silencio**: del pulso 5,5 al 6, −68,3 dB de media (solo el dither).
+- **Los golpes caen en su fotograma.** Arranques medidos: el estallido en el
+  fotograma 60,0 y la primera estrella en el 230,2; los latidos en los pulsos
+  2,00 y 4,01.
+- **Cada silbido va a su lado.** Diferencia izquierda−derecha entre 400 y
+  4000 Hz, ±0,25 s alrededor de cada lengua: +4,9 (izq.), −5,8 (der.), +7,0
+  (izq.), −6,4 (der.), +5,9 (izq.), −7,1 dB (der.). Todas del lado correcto.
+- **Los tambores se oyen bajo el rugido.** El rugido toma aire en cada
+  tambor y crece después. Salto de nivel en los 30 ms del golpe: entre +6,6 y
+  +10,2 dB en seis de los ocho. Los dos últimos, que van seguidos a 0,2 s del
+  anterior y con el silbido de la última lengua ya llegando, se quedan en +5,9
+  y +4,2 dB: se oyen como golpes, pero menos limpios. Lo dejo dicho.
+- **Las campanas de la primera luz** son lo más fuerte en su altura
+  (−21 dB en su banda, frente a −30 a −38 dB del acorde).
+- **Pico**: −2,85 dBFS. El estallido toca el limitador suave del máster: es
+  el momento más fuerte de todo.
+
+## Lo que comprobé de que lo anterior sigue intacto
+
+Añadir efectos al sintetizador tocaba un archivo que comparten todas las
+piezas. Regeneré las seis pistas anteriores (CODY, POIRIER, CODY POIRIER,
+LUMEN, SPLASH y COSMOS) y comparé su SHA-256 con el de antes: idénticas, bit
+a bit.
+
+## Lo que no pude comprobar
+
+- **Cómo suena.** Ver arriba.
+- **Cómo se ve en una pantalla grande y calibrada.** Miré los fotogramas en
+  mis herramientas; el etalonaje está medido con percentiles, no con un
+  monitor de referencia.
+
+## El archivo, comprobado
+
+- 1920×1080, 24 fps, **240 fotogramas contados uno a uno**; 10,000000 s en
+  vídeo, audio y contenedor. 22,4 MB.
+- **El sonido no se ha movido**: el audio decodificado del MP4 coincide con el
+  WAV con 0 muestras de desfase. Fundido de 0,4 s al final del clip (la
+  película sigue después; el clip no).
+- **Los golpes caen en su fotograma, también en la imagen.** El brillo medio
+  salta de 2,0 a 52,2 exactamente en el fotograma 60 (el estallido) y de 125,7
+  a 183,5 en el 80 (el fuego llega a la cámara): los mismos fotogramas en los
+  que arrancan sus sonidos.
+- Pico del audio ya codificado: −1,77 dBFS.
+
+## Fotogramas revisados en esta parte
+
+Unos 200 fotogramas de prueba en 20 rondas; 29 en las pruebas del hueco,
+medidos además con percentiles y con un laplaciano; 27 sacados de los MP4
+(21 del primero y 6 del segundo, después de arreglar el rótulo); y varios
+recortes a tamaño real, sobre todo de la primera estrella.
+
+## Cuánto tardó de verdad esta parte
+
+| Hora (UTC) | Hito |
+| --- | --- |
+| 17:52:16 | Empiezo. |
+| 17:52:31 | Los seis momentos, a 24 fps y 144 pulsos. |
+| 17:58:39 | Motor nuevo y primera ronda de fotogramas de prueba. |
+| 18:03–18:37 | Rondas 1 a 11: el fuego, las franjas y la arena, el color. |
+| 18:40:42 | Ronda 12: la primera estrella sigue siendo un resplandor con un agujero. |
+| 18:50:37 | El agujero, medido: no es un fallo. Hilos de puntos. |
+| 18:54:12 | La primera estrella, terminada. |
+| 18:55–18:59 | La primera luz a contraluz. |
+| 19:00:29 | El plano entero en una hoja. |
+| 19:03:26 | Partitura y efectos escritos. |
+| 19:04:57 | Primera pista; las seis anteriores, idénticas. |
+| 19:09:36 | Sonido medido y corregido: tambores, silbidos, campanas. |
+| 19:10:37 | La composición `CosmosDeep`. |
+| 19:11:01 | Primer render. Lo paro en el fotograma 112 para cerrar antes el hueco. |
+| 19:13:25 | El hueco: fotogramas de referencia. |
+| 19:14:07 | Volumen al doble de píxeles: no cambia nada. Descartado. |
+| 19:16:00 | Pasos más finos y más octavas: tampoco. Descartado. |
+| 19:18–19:21 | El etalonaje, en tres pasadas medidas. |
+| 19:22:39 | Render del clip: 9 min 27 s. |
+| 19:32:18 | Clip comprobado y revisado: el rótulo sobra en la estrella. |
+| 19:33:15 | Segundo render: 9 min 15 s. |
+| 19:42:45 | Clip comprobado otra vez. |
+| 19:43:21 | Las seis pistas anteriores, idénticas otra vez. |
+| 19:43:58 | Este documento escrito. |
+
+**Total de la séptima parte: 1 h 51 min 42 s**, del encargo al documento terminado.
+Sumado a las seis primeras (3 h 19 min 4 s): 5 h 10 min 46 s de trabajo.
+
+Ahora espero tus notas antes de empezar el plano 2.

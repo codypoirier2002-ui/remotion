@@ -4,7 +4,7 @@
  * the video, so this is the fast way to look at a change. (For COSMOS this is
  * the picture band only, without the vertical frame around it.)
  *
- *   bun scripts/stills.ts <lumen|splash|cosmos|cosmos-wide> <outdir> <frame,frame,...> [full]
+ *   bun scripts/stills.ts <lumen|splash|cosmos|cosmos-wide|deep> <outdir> <frame,frame,...> [full]
  *
  * With `full`, every frame is also kept as a full-size PNG.
  */
@@ -12,6 +12,8 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { WIDE, renderSize } from "../src/cosmos/engine";
+import { renderDeep } from "../src/deep/render";
+import { D_BEAT, D_FPS } from "../src/deep/timeline";
 import { renderCosmos } from "../src/cosmos/shots";
 import { C_BEAT, C_FPS } from "../src/cosmos/timeline";
 import { H, W, renderLumen } from "../src/lumen/engine";
@@ -30,6 +32,7 @@ const PIECES = {
     fps: C_FPS,
     beat: C_BEAT,
   },
+  deep: { render: renderDeep, w: W, h: H, fps: D_FPS, beat: D_BEAT },
   "cosmos-wide": {
     render: (frame: number, rgba: Uint8ClampedArray) =>
       renderCosmos(frame, rgba, WIDE),
@@ -42,7 +45,7 @@ const PIECES = {
 const chosen = PIECES[piece as keyof typeof PIECES];
 if (!chosen || !outDir || !frameList)
   throw new Error(
-    "usage: stills.ts <lumen|splash|cosmos|cosmos-wide> <outdir> <frame,frame,...> [full]",
+    "usage: stills.ts <lumen|splash|cosmos|cosmos-wide|deep> <outdir> <frame,frame,...> [full]",
   );
 const { render, w: WW, h: HH } = chosen;
 const frames = frameList.split(",").map(Number);

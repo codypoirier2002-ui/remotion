@@ -434,5 +434,6 @@ export const POIRIER_SCORE: Score = {
   ],
   RISERS: [],
   THUNDER: [],
+  SFX: [],
   GAIN: [],
 };

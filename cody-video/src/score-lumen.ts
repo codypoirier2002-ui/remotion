@@ -308,5 +308,6 @@ export const LUMEN_SCORE: Score = {
   ],
   RISERS: [],
   THUNDER: [],
+  SFX: [],
   GAIN: [],
 };

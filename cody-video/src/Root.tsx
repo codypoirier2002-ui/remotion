@@ -3,7 +3,9 @@ import { Composition, Still } from "remotion";
 import { Cody } from "./Cody";
 import { CodyPoirier } from "./CodyPoirier";
 import { Cosmos, CosmosWide } from "./Cosmos";
+import { CosmosDeep } from "./CosmosDeep";
 import { C_FPS, C_FRAMES } from "./cosmos/timeline";
+import { D_FPS, D_FRAMES } from "./deep/timeline";
 import { Lumen } from "./Lumen";
 import { Poirier } from "./Poirier";
 import { DURATION_FRAMES, FPS } from "./score";
@@ -66,6 +68,14 @@ export const RemotionRoot: React.FC = () => {
         component={CosmosWide}
         durationInFrames={C_FRAMES}
         fps={C_FPS}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="CosmosDeep"
+        component={CosmosDeep}
+        durationInFrames={D_FRAMES}
+        fps={D_FPS}
         width={1920}
         height={1080}
       />

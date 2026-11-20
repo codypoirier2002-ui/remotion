@@ -400,9 +400,51 @@ export type Score = {
     hi: number;
   }[];
   THUNDER: { beat: number; vel: number }[];
+  /** sound effects, each tied to something on screen */
+  SFX: Sfx[];
   /** overall level, [beat, gain]; only the "film" form reads it */
   GAIN: [number, number][];
 };
+
+/**
+ * Sound effects, in beats. `side` is where a sound sits or travels to:
+ * -1 left, 1 right.
+ */
+export type Sfx =
+  /** a low drone that breathes: `hz` is its root */
+  | { kind: "hum"; from: number; to: number; hz: number; vel: number }
+  /** lub-dub */
+  | { kind: "heartbeat"; beat: number; vel: number }
+  /** the crack, the sub drop and the rumble of something enormous starting */
+  | { kind: "bang"; beat: number; vel: number }
+  /** a wall of fire rushing at the camera, ending as it arrives */
+  | { kind: "approach"; from: number; to: number; vel: number }
+  /** the inside of the fire; it surges on `surges` */
+  | {
+      kind: "roar";
+      from: number;
+      to: number;
+      vel: number;
+      surges: number[];
+    }
+  /** something huge passing close by, peaking at `beat` */
+  | { kind: "whoosh"; beat: number; side: number; vel: number }
+  /** a big drum */
+  | { kind: "taiko"; beat: number; vel: number }
+  /** fire crackling, `rate` crackles a second at full strength */
+  | { kind: "crackle"; from: number; to: number; vel: number; rate: number }
+  /** tiny glints of sound, `rate` a second, from `lo` to `hi` Hz */
+  | {
+      kind: "glints";
+      from: number;
+      to: number;
+      vel: number;
+      rate: number;
+      lo: number;
+      hi: number;
+    }
+  /** a high, slowly beating cluster of tones on `hz` */
+  | { kind: "shimmer"; from: number; to: number; vel: number; hz: number };
 
 export const CODY_SCORE: Score = {
   KICKS,
@@ -420,5 +462,6 @@ export const CODY_SCORE: Score = {
   IMPACTS,
   RISERS: [],
   THUNDER: [],
+  SFX: [],
   GAIN: [],
 };
