@@ -8,13 +8,19 @@
  *   6         the bang
  *   6–8       a fireball grows towards the camera
  *   8         it reaches us
- *   8–18      inside: the blast streams past. The core lights the fire from
+ *   8–20      inside: the blast streams past. The core lights the fire from
  *             behind, so every clump throws a shadow towards us and light
- *             pours through the gaps; the core flares on every drum, and six
+ *             pours through the gaps; the core flares on every drum, and
  *             great tongues of fire pass right by the lens
- *   18–22     it cools and clears: the first light
- *   22–24     the dark ages: a web of faint threads, and the first star
+ *   20        the first light: in a few frames the fog clears and the black
+ *             between the clouds floods with light
+ *   20–21.5   the light, reddening and going
+ *   21.5–24   the dark ages: a web of faint threads, and the first star
  *             lights up where the point was
+ *
+ * Nine tenths fire, one tenth light: 14 beats from the bang to the first
+ * light, 1.5 of light. Everything after the fire is timed from E.cool and
+ * E.dark, so the picture cannot drift from the caption or the score.
  *
  * The scene has one centre, the origin: the point, the core of the fire, and
  * the first star are all there.
@@ -141,9 +147,9 @@ const temperature = (b: number) =>
       [8, 4300],
       [12, 3300],
       [16, 2800],
-      [18, 2500],
-      [20, 2100],
-      [22, 1700],
+      [E.cool, 2500],
+      [E.dark, 2100],
+      [E.dark + 1, 1700],
     ],
     b,
   );
@@ -157,11 +163,11 @@ const glowAt = (b: number) =>
       [8.1, 0.8],
       [12, 0.65],
       [16, 0.5],
-      [18, 0.32],
-      [19, 0.15],
-      [20, 0.04],
-      [21, 0.01],
-      [22, 0.003],
+      [E.cool - 0.1, 0.36],
+      [E.cool + 0.3, 0.1],
+      [E.cool + 0.9, 0.03],
+      [E.dark, 0.008],
+      [E.dark + 0.5, 0.003],
     ],
     b,
   );
@@ -174,11 +180,12 @@ const densityAt = (b: number) =>
       [8.1, 0.55],
       [12, 0.17],
       [16, 0.1],
-      [18, 0.15],
-      [19, 0.35],
-      [20.3, 0.35],
-      [21.5, 0.06],
-      [22.3, 0],
+      [E.cool - 0.2, 0.12],
+      // at the first light what is left draws into clouds, dark against it
+      [E.cool + 0.35, 0.35],
+      [E.dark - 0.3, 0.35],
+      [E.dark + 0.3, 0.06],
+      [E.dark + 0.8, 0],
     ],
     b,
   );
@@ -203,35 +210,38 @@ const lightAt = (b: number) => {
       [8, 5],
       [12, 3.4],
       [16, 2.5],
-      [18, 1.6],
-      [19, 0.3],
-      [20, 0],
+      [E.cool - 0.2, 1.7],
+      [E.cool + 0.4, 0.3],
+      [E.cool + 1, 0],
     ],
     b,
   );
   return bang + core * (1 + 1.4 * flare(b));
 };
-const webAt = (b: number) => smooth(20.6, 22.4, b);
+const webAt = (b: number) => smooth(E.cool + 0.5, E.dark + 0.9, b);
 /** Where the first light sits on the fire ramp: it reddens as it fades. */
 const skyTone = (b: number) =>
   keys(
     [
-      [18, 0.68],
-      [20.5, 0.55],
-      [22.5, 0.36],
+      [E.cool, 0.7],
+      [E.dark, 0.52],
+      [E.dark + 1, 0.36],
     ],
     b,
   );
-/** The afterglow of the whole sky, the first light: it comes, reddens and goes. */
+/**
+ * The afterglow of the whole sky, the first light. It arrives in three or
+ * four frames round E.cool (the caption and the chord land on that frame),
+ * then reddens and goes.
+ */
 const skyAt = (b: number) =>
   keys(
     [
-      [17.5, 0],
-      [18.5, 0.35],
-      [19.3, 0.9],
-      [20.3, 0.8],
-      [21.5, 0.18],
-      [22.4, 0.03],
+      [E.cool - 0.15, 0],
+      [E.cool + 0.2, 1],
+      [E.cool + 0.9, 0.8],
+      [E.dark, 0.12],
+      [E.dark + 0.5, 0.03],
       [24, 0.01],
     ],
     b,
@@ -459,12 +469,21 @@ const medium: Medium = {
         [6, 3],
         [9, 1.5],
         [16, 0.8],
-        [19, 0],
+        [E.cool + 0.8, 0],
       ],
       b,
     );
-    // as it cools, the gaps between the clouds widen until only veils are left
-    clear = 0.8 * smooth(17, 21, b);
+    // the gaps between the clouds widen a little as the fire cools, and all
+    // at once when the first light comes
+    clear = keys(
+      [
+        [E.cool - 3, 0],
+        [E.cool - 0.2, 0.14],
+        [E.cool + 0.5, 0.55],
+        [E.dark, 0.8],
+      ],
+      b,
+    );
     skyL = skyAt(b);
     fire(skyTone(b), SKYC);
     const m = Math.max(SKYC[0], SKYC[1], SKYC[2]);
@@ -479,10 +498,10 @@ const medium: Medium = {
         [8.1, 0.04],
         [12, 0.03],
         [16, -0.03],
-        [18, -0.06],
-        [20, -0.12],
-        [21.5, -0.25],
-        [22, -0.35],
+        [E.cool, -0.07],
+        [E.cool + 1, -0.14],
+        [E.dark + 0.3, -0.28],
+        [E.dark + 0.8, -0.35],
       ],
       b,
     );
@@ -964,8 +983,8 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
                 [
                   [6, 0.12],
                   [12, 0],
-                  [18, -0.12],
-                  [20, -0.2],
+                  [E.cool, -0.12],
+                  [E.cool + 1.2, -0.2],
                 ],
                 b,
               ),
@@ -1036,14 +1055,16 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
         fade =
           smooth(E.bang, E.bang + 0.15, b) *
           (b < 22 ? 1 : 1 - 0.6 * smooth(22, 24, b));
-        heat = Math.max(1500, T * p.heat * (b < 18 ? 1 : 0.8));
+        heat = Math.max(1500, T * p.heat * (b < E.cool ? 1 : 0.8));
       } else {
-        fade = smooth(E.bang, E.bang + 0.15, b) * smooth(19.5, 16.5, b);
+        fade =
+          smooth(E.bang, E.bang + 0.15, b) *
+          smooth(E.cool + 0.8, E.cool - 2.5, b);
         heat = T * p.heat * 1.3;
       }
       if (fade < 0.01) continue;
       // embers slow down once the fire has spent itself
-      const slow = p.ember ? 1 - 0.7 * smooth(16, 22, b) : 1;
+      const slow = p.ember ? 1 - 0.7 * smooth(E.cool - 2, E.dark + 0.5, b) : 1;
       const q0 = p.q0 * (1 + p.v * life(b - SHUTTER / 2) * slow) * R0;
       const q1 = p.q0 * (1 + p.v * life(b + SHUTTER / 2) * slow) * R1;
       const flick = 0.55 + 0.45 * noise(i * 0.37, s * 3.1, 0.5);
@@ -1059,7 +1080,7 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
             [6, 3],
             [8, 1.6],
             [14, 1],
-            [18, 0.6],
+            [E.cool, 0.6],
           ],
           b,
         );
@@ -1080,8 +1101,8 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
       );
     }
     // dust, glinting in the light of the core
-    if (b > 7.5 && b < 21 && I > 0.01) {
-      const fadeD = smooth(7.5, 8.5, b) * smooth(21, 19, b);
+    if (b > 7.5 && b < E.cool + 1 && I > 0.01) {
+      const fadeD = smooth(7.5, 8.5, b) * smooth(E.cool + 1, E.cool - 0.5, b);
       for (const d of DUST) {
         const x = d.x * R;
         const y = d.y * R;
@@ -1107,12 +1128,13 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
       }
     }
     // embers drifting past the lens as the fire dies
-    if (b > 16) {
-      const k0 = smooth(16, 18.5, b) * (1 - 0.55 * smooth(22, 24, b));
+    if (b > E.cool - 2.5) {
+      const k0 =
+        smooth(E.cool - 2.5, E.cool, b) * (1 - 0.55 * smooth(22, 24, b));
       blackbody(
         keys(
           [
-            [16, 2600],
+            [E.cool - 2.5, 2600],
             [24, 1500],
           ],
           b,
@@ -1187,10 +1209,10 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
         [6, 0.45],
         [8, 0.45],
         [12, 0.5],
-        [18, 0.6],
-        [19.3, 0.75],
-        [20.5, 0.9],
-        [22, 1.8],
+        [E.cool - 0.2, 0.62],
+        [E.cool + 0.3, 0.8],
+        [E.dark, 0.95],
+        [E.dark + 0.6, 1.8],
         [23, 1.4],
         [24, 1.3],
       ],
@@ -1201,14 +1223,18 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
         [6, 3],
         [8, 4],
         [14, 2.2],
-        [18, 1],
-        [20, 0],
+        [E.cool - 1, 1.2],
+        [E.cool + 0.3, 0],
       ],
       b,
     );
-    // the bang and the engulf blow the exposure out, as light does on film
+    // the bang and the engulf blow the exposure out, as light does on film;
+    // the first light does too, gently
     f.exposure *=
-      1 + 7 * decay(sec(b - E.bang), 0.06) + 3 * decay(sec(b - E.engulf), 0.09);
+      1 +
+      7 * decay(sec(b - E.bang), 0.06) +
+      3 * decay(sec(b - E.engulf), 0.09) +
+      0.7 * decay(sec(b - E.cool), 0.1);
     f.flash = 0.35 * decay(sec(b - E.bang), 0.035);
     f.bloom = keys(
       [
@@ -1226,10 +1252,10 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
       [
         [7.5, 1],
         [8.5, 1.7],
-        [17, 1.7],
-        [18.5, 1.8],
-        [21, 1.8],
-        [22, 1.2],
+        [E.cool, 1.7],
+        [E.cool + 0.4, 1.8],
+        [E.dark, 1.8],
+        [E.dark + 0.7, 1.2],
         [24, 1.1],
       ],
       b,

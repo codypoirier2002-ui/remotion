@@ -41,8 +41,9 @@ export const CosmosDeep: React.FC = () => {
     ) ?? null;
   const u = caption ? b - caption.from : 0;
   const out = caption ? 1 - smooth(caption.to - 0.8, caption.to - 0.15, b) : 0;
-  const whenIn = smooth(0.1, 0.7, u) * out;
-  const whatIn = spring((u - 0.3) * D_BEAT, 2.2, 0.75);
+  // in within three frames: a caption names what is on screen as it arrives
+  const whenIn = smooth(0, 0.3, u) * out;
+  const whatIn = spring((u - 0.05) * D_BEAT, 4, 0.8);
   const progress = clamp(frame / (D_FRAMES - 1));
   const unit = 1.3;
 

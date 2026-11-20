@@ -740,8 +740,17 @@ function approach(tA: number, tB: number, vel: number) {
   }
 }
 
-/** The inside of the fire: a churning roar that surges on `surges` (seconds). */
-function roar(tA: number, tB: number, vel: number, surges: number[]) {
+/**
+ * The inside of the fire: a churning roar that surges on `surges` (seconds)
+ * and takes `fade` seconds to stop at the end.
+ */
+function roar(
+  tA: number,
+  tB: number,
+  vel: number,
+  surges: number[],
+  fade: number,
+) {
   const i0 = Math.floor(tA * SR);
   const len = Math.floor((tB - tA) * SR);
   const lpL = new SVF();
@@ -768,7 +777,7 @@ function roar(tA: number, tB: number, vel: number, surges: number[]) {
     lpR.tick(rnd(), fc * 1.12, 0.85);
     hsL.tick(rnd(), 2800, 1.2);
     hsR.tick(rnd(), 3100, 1.2);
-    const env = Math.min(1, t / 0.04) * Math.min(1, (len - i) / (SR * 0.9));
+    const env = Math.min(1, t / 0.04) * Math.min(1, (len - i) / (SR * fade));
     const g = env * vel * churn * (1 + 0.5 * surge) * dip;
     const l = (lpL.lp * 2.2 + hsL.bp * 0.18) * g;
     const r = (lpR.lp * 2.2 + hsR.bp * 0.18) * g;
@@ -995,6 +1004,7 @@ parts.forEach((part, index) => {
         sec(at + fx.to),
         fx.vel,
         fx.surges.map((b) => sec(at + b)),
+        fx.fade,
       );
     else if (fx.kind === "whoosh") whoosh(sec(at + fx.beat), fx.side, fx.vel);
     else if (fx.kind === "taiko") taiko(sec(at + fx.beat), fx.vel);

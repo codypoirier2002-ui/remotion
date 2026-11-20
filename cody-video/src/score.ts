@@ -419,13 +419,14 @@ export type Sfx =
   | { kind: "bang"; beat: number; vel: number }
   /** a wall of fire rushing at the camera, ending as it arrives */
   | { kind: "approach"; from: number; to: number; vel: number }
-  /** the inside of the fire; it surges on `surges` */
+  /** the inside of the fire; it surges on `surges` and takes `fade` seconds to stop */
   | {
       kind: "roar";
       from: number;
       to: number;
       vel: number;
       surges: number[];
+      fade: number;
     }
   /** something huge passing close by, peaking at `beat` */
   | { kind: "whoosh"; beat: number; side: number; vel: number }

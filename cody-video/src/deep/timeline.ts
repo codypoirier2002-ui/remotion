@@ -22,31 +22,6 @@ export type DeepShot = {
   captions: Caption[];
 };
 
-export const DEEP_SHOTS: DeepShot[] = [
-  {
-    id: "bang",
-    from: 0,
-    captions: [
-      {
-        from: 8.5,
-        to: 18,
-        when: "13.8 billion years ago",
-        what: "The Big Bang",
-      },
-      // gone before the dark ages, so it never names the first star
-      { from: 18.5, to: 22, when: "380,000 years later", what: "First light" },
-    ],
-  },
-  { id: "galaxy", from: 24, captions: [] },
-  { id: "supernova", from: 48, captions: [] },
-  { id: "theia", from: 72, captions: [] },
-  { id: "asteroid", from: 96, captions: [] },
-  { id: "dot", from: 120, captions: [] },
-];
-
-/** Which shots are made so far. The others render black. */
-export const READY_SHOTS = 1;
-
 // ---------------------------------------------------------------- shot 1: the Big Bang
 /** Every moment of the first shot, in beats. The picture and the score both read these. */
 export const BANG = {
@@ -60,7 +35,7 @@ export const BANG = {
   /** the fireball reaches the camera */
   engulf: 8,
   /** the drums inside the blast; the core flares on each */
-  drums: [8, 10, 12, 13.5, 14, 16, 16.5, 17],
+  drums: [8, 10, 12, 13.5, 14, 16, 16.5, 17, 18, 19, 19.5],
   /**
    * Great tongues of fire that pass right by the camera, each with its own
    * whoosh. `side` is where it passes: -1 left, 1 right; `lift` above or below.
@@ -72,11 +47,46 @@ export const BANG = {
     { beat: 14.5, side: 1, lift: 0.45 },
     { beat: 15.75, side: -1, lift: 0.1 },
     { beat: 17.25, side: 1, lift: -0.35 },
+    { beat: 18.75, side: -1, lift: 0.25 },
   ],
-  /** the fire cools and clears: the first light */
-  cool: 18,
-  /** the light has faded: the dark ages */
-  dark: 22,
+  /**
+   * The first light: the fog clears and the sky floods with light, all on
+   * this beat. Nine tenths fire, one tenth light: 14 beats from the bang to
+   * here, 1.5 from here to the dark.
+   */
+  cool: 20,
+  /** the light has gone: the dark ages */
+  dark: 21.5,
   /** the first star lights up, where the point was */
   firstStar: 23,
 };
+
+export const DEEP_SHOTS: DeepShot[] = [
+  {
+    id: "bang",
+    from: 0,
+    captions: [
+      {
+        from: BANG.engulf + 0.5,
+        to: BANG.cool,
+        when: "13.8 billion years ago",
+        what: "The Big Bang",
+      },
+      // comes in on the frame the light does, and goes when the light does
+      {
+        from: BANG.cool,
+        to: BANG.dark + 0.5,
+        when: "380,000 years later",
+        what: "First light",
+      },
+    ],
+  },
+  { id: "galaxy", from: 24, captions: [] },
+  { id: "supernova", from: 48, captions: [] },
+  { id: "theia", from: 72, captions: [] },
+  { id: "asteroid", from: 96, captions: [] },
+  { id: "dot", from: 120, captions: [] },
+];
+
+/** Which shots are made so far. The others render black. */
+export const READY_SHOTS = 1;

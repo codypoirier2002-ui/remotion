@@ -1477,3 +1477,102 @@ recortes a tamaño real, sobre todo de la primera estrella.
 Sumado a las seis primeras (3 h 19 min 4 s): 5 h 10 min 46 s de trabajo.
 
 Ahora espero tus notas antes de empezar el plano 2.
+
+# Octava parte: tus notas sobre el plano 1
+
+## Las notas y cómo las entendí
+
+> First light seems to happen after the fire but is shown in the timeline
+> about a second earlier. 90% fire 10% light
+
+Dos cosas:
+
+1. **El rótulo iba por delante de la imagen.** «First light» salía en el pulso
+   18,5 (7,7 s), cuando en pantalla todavía había fuego; la luz no se leía
+   como luz hasta alrededor de los 8,3 s. Tenías razón, y la causa era mía: la
+   imagen pasaba del fuego a la luz en un fundido de más de un segundo, y el
+   rótulo estaba puesto al principio de ese fundido.
+2. **La proporción: 90 % fuego, 10 % luz.** Lo leí como respuesta a lo que te
+   pregunté («cuánto fuego y cuánta primera luz»). Antes era 77 % y 23 % (5 s
+   de fuego, 1,5 s de luz).
+
+Si la segunda frase no era una proporción que querías sino una descripción de
+lo que se veía cuando salía el rótulo, la primera corrección ya lo resuelve, y
+la luz se puede volver a alargar cambiando dos números (`cool` y `dark` en
+`src/deep/timeline.ts`).
+
+## Qué cambié
+
+- **El fuego dura hasta el pulso 20** (8,33 s) en vez de hasta el 18. Tres
+  tambores más (pulsos 18, 19 y 19,5) y una séptima lengua de fuego que pasa
+  por la izquierda en el 18,75.
+- **La primera luz es un acontecimiento, no un fundido.** Llega en tres
+  fotogramas alrededor del pulso 20: el negro que había entre las nubes de
+  humo se inunda de luz, la exposición sube un instante, y lo que queda de
+  humo se cierra en nubes oscuras con los bordes encendidos.
+- **Dura un pulso y medio** (0,63 s) y se apaga hacia las edades oscuras, que
+  empiezan en el 21,5. La primera estrella sigue en el 23.
+- **El rótulo entra en el mismo fotograma que la luz** y está entero tres
+  fotogramas después. Antes tardaba siete. Y **se va con la luz**: en un
+  primer render seguía en pantalla durante las edades oscuras, que es el mismo
+  error por el otro lado; lo corregí y volví a renderizar.
+- **Por qué no puede volver a pasar.** Los tiempos de después del fuego
+  estaban escritos como números sueltos en veinte curvas distintas (brillo,
+  densidad, cielo, exposición, contraste…), y el rótulo en otro sitio. Ahora
+  todos se escriben respecto a dos nombres, `cool` y `dark`, que son los
+  mismos que leen el rótulo y la partitura. Mover la primera luz es cambiar
+  un número.
+- **El sonido de la primera luz.** El último compás del fuego espera sobre un
+  acorde de Do (suspendido y luego resuelto), con un crescendo de un pulso.
+  Luego 60 ms de casi silencio, y en el pulso 20 el rugido se corta en seco y
+  entran un platillo suave, el acorde de La♭ y cuatro campanas hacia arriba.
+  La primera versión de este cambio no tenía ese silencio y, medida, la luz no
+  «llegaba» en el sonido: el nivel cambiaba 1 dB, porque el crescendo anterior
+  sonaba tan fuerte como el golpe.
+
+## Medido
+
+| Qué | Resultado |
+| --- | --- |
+| Proporción en la línea de tiempo | 14 pulsos de fuego (del 6 al 20), 1,5 de luz: 90,3 % y 9,7 % |
+| Proporción en la imagen | Fuego en los fotogramas 60 a 199 (140), luz del 200 al 215 (16): 89,7 % y 10,3 % |
+| Brillo medio de la imagen | Fotograma 198: 40. 199: 74. **200: 152.** 201: 164 |
+| Nivel del sonido por fotograma | 198: −11,4 dB. 199: −34,8 dB (el silencio). **200: −9,8 dB** |
+| El golpe de la luz, 30 ms después frente a 60 ms antes | +9,9 dB en graves, +6,6 en medios, +13,3 en agudos |
+| El rótulo | Empieza en el fotograma 200, entero en el 203, se va entre el 212 y el 218 |
+| La lengua nueva | 4,8 dB más fuerte por la izquierda, su lado |
+| Los tambores nuevos | +6,2, +6,4 y +4,5 dB sobre el rugido |
+| El archivo | 240 fotogramas contados, 10,000000 s, audio a 0 muestras del WAV, 21,0 MB |
+| Las seis pistas anteriores | Idénticas bit a bit (SHA-256) después de tocar el sintetizador |
+
+## Lo que dejo dicho
+
+- **El rótulo «First light» está entero medio segundo.** Con la luz al 10 % no
+  puede estar más tiempo sin nombrar algo que ya no se ve. Las dos palabras
+  grandes se leen; la línea pequeña de encima, justa.
+- **Tres de los once tambores** (los que van a 0,2 s de otro: pulsos 16,5, 17
+  y 19,5) se quedan entre +4,2 y +5,7 dB: se oyen como golpes, menos limpios
+  que el resto.
+- Sigo sin oír: todo lo del sonido está medido.
+
+## Fotogramas revisados en esta parte
+
+15 de prueba alrededor del paso del fuego a la luz, 12 del primer MP4 y 6 del
+segundo.
+
+## Cuánto tardó de verdad esta parte
+
+| Hora (UTC) | Hito |
+| --- | --- |
+| 20:22:49 | Llegan tus notas. |
+| 20:28 | Todos los tiempos de después del fuego, reescritos respecto a `cool` y `dark`. |
+| 20:30 | Fotogramas de prueba: la luz llega en el fotograma 200. |
+| 20:32 | Partitura nueva. Medida: la luz no «llega» en el sonido; añado el silencio. |
+| 20:32:44 | Render: 9 min 39 s. |
+| 20:43 | Revisado: el rótulo sigue en las edades oscuras. Corregido. |
+| 20:43:20 | Segundo render: 9 min 34 s. |
+| 20:53:50 | Archivo y sonido comprobados; las seis pistas anteriores, idénticas. |
+| 20:54:16 | Este documento escrito. |
+
+**Total de la octava parte: 31 min 27 s**, de tus notas al documento terminado.
+Sumado a las siete primeras (5 h 10 min 46 s): 5 h 42 min 13 s de trabajo.
