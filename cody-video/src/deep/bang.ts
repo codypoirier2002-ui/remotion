@@ -8,19 +8,20 @@
  *   6         the bang
  *   6–8       a fireball grows towards the camera
  *   8         it reaches us
- *   8–20      inside: the blast streams past. The core lights the fire from
+ *   8–16      inside: the blast streams past. The core lights the fire from
  *             behind, so every clump throws a shadow towards us and light
  *             pours through the gaps; the core flares on every drum, and
  *             great tongues of fire pass right by the lens
- *   20        the first light: in a few frames the fog clears and the black
+ *   16        the first light: in a few frames the fog clears and the black
  *             between the clouds floods with light
- *   20–21.5   the light, reddening and going
+ *   16–21.5   the light: clouds dark against it with their edges lit, the
+ *             web's threads gathering, the light reddening and going
  *   21.5–24   the dark ages: a web of faint threads, and the first star
  *             lights up where the point was
  *
- * Nine tenths fire, one tenth light: 14 beats from the bang to the first
- * light, 1.5 of light. Everything after the fire is timed from E.cool and
- * E.dark, so the picture cannot drift from the caption or the score.
+ * About two thirds fire and one third light: 10 beats from the bang to the
+ * first light, 5.5 of light. Everything from the fire on is timed from E.cool
+ * and E.dark, so the picture cannot drift from the caption or the score.
  *
  * The scene has one centre, the origin: the point, the core of the fire, and
  * the first star are all there.
@@ -145,8 +146,8 @@ const temperature = (b: number) =>
       [6, 7000],
       [7, 5000],
       [8, 4300],
-      [12, 3300],
-      [16, 2800],
+      [E.cool - 6, 3300],
+      [E.cool - 2, 2800],
       [E.cool, 2500],
       [E.dark, 2100],
       [E.dark + 1, 1700],
@@ -161,8 +162,8 @@ const glowAt = (b: number) =>
       [7, 0.45],
       [7.85, 0.4],
       [8.1, 0.8],
-      [12, 0.65],
-      [16, 0.5],
+      [E.cool - 6, 0.65],
+      [E.cool - 2, 0.5],
       [E.cool - 0.1, 0.36],
       [E.cool + 0.3, 0.1],
       [E.cool + 0.9, 0.03],
@@ -178,8 +179,8 @@ const densityAt = (b: number) =>
       [7, 10],
       [7.8, 2.5],
       [8.1, 0.55],
-      [12, 0.17],
-      [16, 0.1],
+      [E.cool - 6, 0.17],
+      [E.cool - 2, 0.1],
       [E.cool - 0.2, 0.12],
       // at the first light what is left draws into clouds, dark against it
       [E.cool + 0.35, 0.35],
@@ -208,8 +209,8 @@ const lightAt = (b: number) => {
     [
       [6, 9],
       [8, 5],
-      [12, 3.4],
-      [16, 2.5],
+      [E.cool - 6, 3.4],
+      [E.cool - 2, 2.5],
       [E.cool - 0.2, 1.7],
       [E.cool + 0.4, 0.3],
       [E.cool + 1, 0],
@@ -218,7 +219,8 @@ const lightAt = (b: number) => {
   );
   return bang + core * (1 + 1.4 * flare(b));
 };
-const webAt = (b: number) => smooth(E.cool + 0.5, E.dark + 0.9, b);
+// the web's threads gather while the light is still on: dark against it
+const webAt = (b: number) => smooth(E.dark - 2.5, E.dark + 0.9, b);
 /** Where the first light sits on the fire ramp: it reddens as it fades. */
 const skyTone = (b: number) =>
   keys(
@@ -239,7 +241,9 @@ const skyAt = (b: number) =>
     [
       [E.cool - 0.15, 0],
       [E.cool + 0.2, 1],
-      [E.cool + 0.9, 0.8],
+      [E.cool + 0.9, 0.85],
+      // it holds, so the light has time to be looked at, then goes
+      [E.dark - 1.5, 0.6],
       [E.dark, 0.12],
       [E.dark + 0.5, 0.03],
       [24, 0.01],
@@ -468,7 +472,7 @@ const medium: Medium = {
       [
         [6, 3],
         [9, 1.5],
-        [16, 0.8],
+        [E.cool - 2, 0.8],
         [E.cool + 0.8, 0],
       ],
       b,
@@ -496,8 +500,8 @@ const medium: Medium = {
         [7, 0.15],
         [7.85, 0.12],
         [8.1, 0.04],
-        [12, 0.03],
-        [16, -0.03],
+        [E.cool - 6, 0.03],
+        [E.cool - 2, -0.03],
         [E.cool, -0.07],
         [E.cool + 1, -0.14],
         [E.dark + 0.3, -0.28],
@@ -982,7 +986,7 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
               keys(
                 [
                   [6, 0.12],
-                  [12, 0],
+                  [E.cool - 6, 0],
                   [E.cool, -0.12],
                   [E.cool + 1.2, -0.2],
                 ],
@@ -1079,7 +1083,7 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
           [
             [6, 3],
             [8, 1.6],
-            [14, 1],
+            [E.cool - 4, 1],
             [E.cool, 0.6],
           ],
           b,
@@ -1208,7 +1212,7 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
       [
         [6, 0.45],
         [8, 0.45],
-        [12, 0.5],
+        [E.cool - 6, 0.5],
         [E.cool - 0.2, 0.62],
         [E.cool + 0.3, 0.8],
         [E.dark, 0.95],
@@ -1222,7 +1226,7 @@ export const renderBang = (frame: number, rgba: Uint8ClampedArray) => {
       [
         [6, 3],
         [8, 4],
-        [14, 2.2],
+        [E.cool - 4, 2.2],
         [E.cool - 1, 1.2],
         [E.cool + 0.3, 0],
       ],

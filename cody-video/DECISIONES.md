@@ -1576,3 +1576,106 @@ segundo.
 
 **Total de la octava parte: 31 min 27 s**, de tus notas al documento terminado.
 Sumado a las siete primeras (5 h 10 min 46 s): 5 h 42 min 13 s de trabajo.
+
+# Novena parte: más luz
+
+## La nota
+
+> No, I don't want it at 90% fire and 10% light I was telling you what was
+> already going on. I thought you were asking me how much fire compared to
+> light. Just do your recommendation. Yes, it needs more light
+
+Entendí mal la nota anterior. «90% fire 10% light» describía lo que se veía,
+no lo que querías. En la octava parte dejé escrita esa otra lectura como
+posible; era la buena, y debí preguntar antes de renderizar en vez de después.
+El resultado fue hacer lo contrario de lo que hacía falta: quitar luz.
+
+Lo que sí estaba bien de la octava parte se queda: la luz llega de golpe y no
+en un fundido, el rótulo entra en ese mismo fotograma y se va con ella, y hay
+un respiro de silencio antes para que la llegada se oiga.
+
+## Mi recomendación: dos tercios de fuego, un tercio de luz
+
+| | Antes de tus notas | Octava parte | Ahora |
+| --- | --- | --- | --- |
+| Fuego (del estallido a la primera luz) | 5,0 s | 5,83 s | **4,17 s** |
+| Primera luz | 1,46 s | 0,63 s | **2,29 s** |
+| Proporción | 77 % y 23 % | 90 % y 10 % | **65 % y 35 %** |
+| La luz llega en | 7,5 s, en un fundido de un segundo | 8,33 s, en tres fotogramas | **6,67 s, en tres fotogramas** |
+
+Por qué esa proporción:
+
+- **El fuego sigue siendo lo principal**, pero cuatro segundos le bastan: la
+  bola que crece, la llegada a la cámara, cuatro lenguas que pasan rozando y
+  siete tambores. Más largo empezaba a repetirse.
+- **La luz necesita tiempo para mirarse.** En 2,3 s cabe todo lo que tiene:
+  llega de golpe, las nubes quedan a contraluz con los bordes encendidos, la
+  red de hilos oscuros se va formando delante de ella, enrojece y se apaga.
+  Con 0,6 s solo cabía el golpe.
+- **El rótulo se puede leer**: dos segundos enteros en pantalla, en vez de
+  medio.
+- **Cae en una barra de compás** (pulso 16, fotograma 160), que es donde la
+  música quiere un cambio así.
+
+Por qué en la primera versión parecía 90 y 10 aunque la línea de tiempo dijera
+77 y 23: la luz tardaba un segundo en leerse como luz. Ahora se lee desde su
+primer fotograma, así que lo que dice la línea de tiempo es lo que se ve.
+
+## Qué cambié
+
+- **La primera luz, del pulso 20 al 16.** Como desde la octava parte todo
+  cuelga de dos nombres (`cool` y `dark`), fue cambiar un número. Al hacerlo
+  salieron diez curvas del fuego que todavía tenían números sueltos en medio
+  (en los pulsos 12 y 16) y que con la luz en el 16 quedaban desordenadas;
+  ahora también se escriben respecto a `cool`.
+- **El fuego, recompuesto para su nueva duración**: siete tambores (los dos
+  últimos, seguidos, empujan hacia la luz) y cuatro lenguas de fuego.
+- **La luz se sostiene.** Antes bajaba sin parar desde que llegaba; ahora se
+  mantiene tres pulsos y medio y cae al final.
+- **La red aparece durante la luz**, no después: hilos oscuros contra el
+  cielo naranja, que es como mejor se ven.
+- **La música de la luz**: tres acordes con el bajo bajando por grados hacia
+  la oscuridad (La♭, Mi♭ sobre Sol, Fa menor), cada uno más apagado que el
+  anterior. Las cuatro campanas hacia arriba cuando llega, y luego una línea
+  lenta de otras cuatro hacia abajo mientras enrojece.
+
+## Medido
+
+| Qué | Resultado |
+| --- | --- |
+| Proporción en la línea de tiempo | 10 pulsos de fuego, 5,5 de luz: 64,5 % y 35,5 % |
+| Proporción en la imagen | Fuego en los fotogramas 60 a 159 (100), luz del 160 al 214 (55): 64,5 % y 35,5 % |
+| Brillo medio de la imagen | Fotograma 158: 38. 159: 73. **160: 150.** 161: 164 |
+| Cuánto aguanta la luz | Por encima de 100 hasta el fotograma 200 (8,3 s); en 33 en el 214 |
+| Nivel del sonido por fotograma | 158: −10,9 dB. 159: −34,4 dB (el respiro). **160: −10,0 dB** |
+| El golpe de la luz, 30 ms después frente a 60 ms antes | +6,6 dB en graves, +11,7 en medios, +15,9 en agudos |
+| El rótulo | Empieza en el fotograma 160, entero del 163 al 212 (2,0 s), se va con la luz |
+| Las cuatro lenguas | 4,7, 6,1, 7,2 y 6,7 dB más fuertes por su lado |
+| Los siete tambores | Seis entre +6,5 y +11,7 dB sobre el rugido; el último, a 0,2 s del anterior, +5,5 |
+| El archivo | 240 fotogramas contados, 10,000000 s, audio a 0 muestras del WAV, 22,0 MB |
+| Volumen | −11,5 LUFS, pico real −1,5 dBTP (bajé el clip 0,6 dB: sin eso el pico real quedaba en −0,9) |
+| Las seis pistas anteriores | Idénticas bit a bit (SHA-256) |
+
+Sigo sin oír: todo lo del sonido está medido.
+
+## Fotogramas revisados en esta parte
+
+20 de prueba, de dentro del fuego a la primera estrella, y 12 del MP4.
+
+## Cuánto tardó de verdad esta parte
+
+| Hora (UTC) | Hito |
+| --- | --- |
+| 21:01:50 | Llega tu nota. |
+| 21:04 | La primera luz en el pulso 16; las curvas que quedaban sueltas, atadas. |
+| 21:05 | Partitura recompuesta. |
+| 21:06 | Sonido medido; un tambor reforzado. |
+| 21:07 | 20 fotogramas de prueba revisados. |
+| 21:07:50 | Render: 9 min 34 s. |
+| 21:18 | Archivo comprobado; pico real corregido; las seis pistas anteriores, idénticas. |
+| 21:19:06 | Este documento escrito. |
+
+**Total de la novena parte: 17 min 16 s**, de tu nota al documento terminado.
+Sumado a las ocho primeras (5 h 42 min 13 s): 5 h 59 min 29 s de trabajo.
+
+El plano 2 sigue sin empezar: espero tu visto bueno.

@@ -35,7 +35,7 @@ export const BANG = {
   /** the fireball reaches the camera */
   engulf: 8,
   /** the drums inside the blast; the core flares on each */
-  drums: [8, 10, 12, 13.5, 14, 16, 16.5, 17, 18, 19, 19.5],
+  drums: [8, 10, 12, 13.5, 14, 15, 15.5],
   /**
    * Great tongues of fire that pass right by the camera, each with its own
    * whoosh. `side` is where it passes: -1 left, 1 right; `lift` above or below.
@@ -45,16 +45,13 @@ export const BANG = {
     { beat: 11, side: 1, lift: -0.2 },
     { beat: 12.75, side: -1, lift: -0.5 },
     { beat: 14.5, side: 1, lift: 0.45 },
-    { beat: 15.75, side: -1, lift: 0.1 },
-    { beat: 17.25, side: 1, lift: -0.35 },
-    { beat: 18.75, side: -1, lift: 0.25 },
   ],
   /**
    * The first light: the fog clears and the sky floods with light, all on
-   * this beat. Nine tenths fire, one tenth light: 14 beats from the bang to
-   * here, 1.5 from here to the dark.
+   * this beat, a bar line. About two thirds fire and one third light: 10
+   * beats from the bang to here, 5.5 from here to the dark.
    */
-  cool: 20,
+  cool: 16,
   /** the light has gone: the dark ages */
   dark: 21.5,
   /** the first star lights up, where the point was */

@@ -57,7 +57,7 @@ COSMOS DEEP's shot 1 clip (the other five shots render black until made):
 ```console
 bun scripts/make-music.ts deep   # -> public/deep-track.wav (60 s)
 bunx remotion render CosmosDeep out/deep-video.mp4 --frames=0-239 --muted --image-format=png --crf=16
-ffmpeg -i out/deep-video.mp4 -i public/deep-track.wav -t 10 -af "afade=t=out:st=9.6:d=0.4" \
+ffmpeg -i out/deep-video.mp4 -i public/deep-track.wav -t 10 -af "volume=-0.6dB,afade=t=out:st=9.6:d=0.4" \
   -map 0:v -map 1:a -c:v copy -c:a aac -b:a 256k -aac_pns 0 cosmos-deep-shot1.mp4
 ```
 
