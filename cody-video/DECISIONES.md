@@ -2,12 +2,13 @@
 
 Dos vídeos de 15 segundos, uno por nombre, **CODY** y **POIRIER**; uno de 30
 segundos en el que el primero desemboca en el segundo y termina con el nombre
-completo; y un cuarto, **LUMEN**, de 15 segundos, con otro estilo y sin una
-sola letra. Todo es código: la tipografía, el movimiento, la luz y la música.
-No hay fuentes, imágenes, vídeo de archivo ni muestras de audio.
+completo; y otros dos de 15 segundos sin una sola letra, cada uno con su
+estilo: **LUMEN**, puntos de luz en la oscuridad, y **SPLASH**, pintura espesa
+a todo color. Todo es código: la tipografía, el movimiento, la luz, la pintura
+y la música. No hay fuentes, imágenes, vídeo de archivo ni muestras de audio.
 
-Este documento tiene tres partes, en el orden en que se encargaron: CODY,
-luego POIRIER y la unión, y al final LUMEN.
+Este documento tiene cuatro partes, en el orden en que se encargaron: CODY,
+luego POIRIER y la unión, después LUMEN y al final SPLASH.
 
 ## Resultado
 
@@ -17,8 +18,9 @@ luego POIRIER y la unión, y al final LUMEN.
 | `poirier.mp4` | POIRIER, se sostiene solo | 15,000000 s | 900 | 19,5 MB |
 | `cody-poirier.mp4` | Los dos unidos | 30,000000 s | 1800 | 39,8 MB |
 | `lumen.mp4` | LUMEN, sin palabras | 15,000000 s | 900 | 31,8 MB |
+| `splash.mp4` | SPLASH, sin palabras | 15,000000 s | 900 | 17,1 MB |
 
-Los cuatro: H.264, 1920×1080, 60 fps, AAC estéreo a 48 kHz. Medido con `ffprobe`
+Los cinco: H.264, 1920×1080, 60 fps, AAC estéreo a 48 kHz. Medido con `ffprobe`
 sobre cada archivo final, contando los fotogramas decodificados uno a uno
 (`-count_frames`). La duración es la misma en el vídeo, en el audio y en el
 contenedor.
@@ -652,3 +654,220 @@ Tiempos de máquina, medidos con `time` en 4 núcleos: sintetizar la pista
 1,4 s; un fotograma entre 0,27 y 0,60 s; el proceso completo (síntesis, 900
 fotogramas, unión y verificación) 2 min 31 s, el doble que los otros porque
 aquí cada píxel se calcula.
+
+# Cuarta parte: SPLASH, pintura
+
+## Qué se pidió y cómo lo entendí
+
+«¿Puedes hacer uno mejor, de otro estilo, con imágenes más vibrantes y
+enérgicas?» Venía de LUMEN, así que lo leí como: otra vez sin palabras, y lo
+contrario de LUMEN en todo lo que lo hacía tranquilo. LUMEN es oscuro, fino,
+de un solo plano y a medio tiempo. Este es claro, grueso, cambia de color en
+cada golpe y lleva el bombo en todos los tiempos. Las reglas del primer
+encargo siguen en pie: solo código, música sintetizada, 1920×1080, 60 fps,
+15 segundos exactos, fotogramas revisados y tiempo medido.
+
+`splash` es solo el nombre del archivo. En pantalla no hay texto.
+
+**Sobre «mejor».** Eso no lo puedo certificar yo; lo decide quien lo mira. Lo
+que sí puedo decir es qué intenté mejorar respecto de LUMEN, en concreto:
+
+| | LUMEN | SPLASH |
+| --- | --- | --- |
+| Brillo medio de la imagen (0 a 255) | 45 | 134 |
+| Saturación media del color (misma escala de `ffmpeg`) | 9 | 85 |
+| Ritmo | Medio tiempo: una caja por compás | Bombo en cada tiempo; 13 cambios de color de pantalla entera |
+| Material | Polvo fino, que la compresión castiga | Formas grandes de color plano |
+| Peso del archivo | 31,8 MB con compresión más fuerte | 17,1 MB con la compresión de CODY |
+| Final | Una esfera que sigue girando | Una gota quieta: los últimos 0,78 s no se mueve nada |
+
+## La idea
+
+Una sola: **todo es pintura espesa.**
+
+Una única materia. Gotas brillantes que al acercarse se funden y al separarse
+dejan un cuello que se rompe. El fondo también es pintura: en cada golpe
+fuerte un color nuevo inunda la pantalla desde un punto, y el color que había
+queda debajo.
+
+## Qué elegí y por qué
+
+**Metabolas, no formas.** Cada gota suma a un campo invisible y la pintura está
+donde ese campo supera un umbral. Por eso dos gotas que se acercan se buscan y
+se unen solas, sin que nadie dibuje la unión. El color se promedia según lo
+que aporta cada gota: donde se tocan dos colores se mezclan como pintura
+fresca.
+
+**Brillo de esmalte.** Si fueran manchas planas, esto sería CODY otra vez. La
+superficie se redondea en los últimos 58 px antes del borde, la luz viene de
+arriba a la izquierda, hay dos brillos (uno ancho y otro fino, que es el que
+la hace parecer mojada) y cada capa proyecta sombra sobre la de abajo.
+
+**Cinco colores a todo volumen.** Rosa `#FF267A`, naranja `#FF7E14`, amarillo
+`#FFD60A`, cian `#14CEFF` y violeta `#7C3AFF`. Cualquiera puede ser fondo y
+cualquiera puede ser gota. Hay un azul noche, `#180C42`, que solo aparece en el
+compás 4 y en el silencio, para que el drop tenga de dónde salir, y blanco
+solo en gotas pequeñas.
+
+**Una regla de color.** La gota protagonista lleva siempre el color de la
+siguiente inundación: revienta, y ese color se queda con la pantalla.
+
+**Tres capas de pintura.** Inundaciones al fondo, gotas lanzadas encima y los
+cuerpos arriba. Dentro de una capa todo se funde; entre capas hay sombra.
+
+**Peso, golpe y rebote.** Muelles en segundos reales. Lo que aterriza se
+aplasta, lo que vuela se estira, y las gotas lanzadas se alargan según su
+velocidad, que aquí hace el trabajo del desenfoque. Los cuerpos tiemblan como
+gelatina después de cada golpe y se quedan redondos.
+
+**Una canción nueva, con la forma de CODY.** La menor: La menor, Fa, Do, Sol.
+Cuatro acordes, y en el primer compás cuatro colores, uno por acorde. Vuelve
+el bombo en los cuatro tiempos porque es lo que empuja. La melodía es
+pentatónica. Mismos instrumentos, misma partitura compartida entre sonido e
+imagen (`src/score-splash.ts`), mismos 132 pulsos por minuto. Los barridos de
+subida del sintetizador estaban afinados en Fa; ahora se afinan con la pieza.
+
+**Estructura.**
+
+| Tiempo | Compás | Qué pasa |
+| --- | --- | --- |
+| 0,00 s | anacrusa | Una gota rosa se encoge y tiembla mientras absorbe gotas de alrededor. |
+| 0,45 s | 1 | Cuatro golpes, cuatro inundaciones: rosa, cian, amarillo, violeta. La gota salta a un sitio nuevo y revienta en cada uno. |
+| 2,27 s | 2 | La gota va de un lado a otro, un salto por bombo. Las palmas le arrancan un anillo de gotas; cinco campanas, cinco burbujas amarillas. |
+| 4,09 s | 3 | Inundación cian. Una gota se divide en dos, cuatro, ocho, una división por tiempo. |
+| 5,91 s | 4 | El corro de ocho gira cada vez más rápido. Cada golpe del redoble lo encoge y cierra la oscuridad un paso. Queda una perla blanca. Medio tiempo de silencio. |
+| 7,73 s | 5 | **El momento grande.** La perla estalla en 90 gotas. Un color nuevo por tiempo, entrando desde una esquina. La gota bota con cada bombo y lanza un brazo con cada nota. |
+| 9,55 s | 6 | La gota se zambulle y suben siete columnas de pintura: un ecualizador líquido. Cada nota de la melodía hace saltar una. |
+| 11,36 s | 7 | Un molinillo de cuatro brazos. Los cuatro timbales los recogen de uno en uno en una bola de cuatro colores. |
+| 13,18 s | 8 | Último golpe: amarillo, y la bola es una sola gota rosa. Tres notas, tres gotas que le caen encima. Tiembla, se asienta, quieta. |
+
+## Qué descarté
+
+- **Otro fondo oscuro con brillos** (neón, rejillas, láser). Habría sido LUMEN
+  con otra ropa.
+- **Gotitas pegadas al cuerpo para hacerlo temblar.** Parecían verrugas. El
+  temblor lo hacen tres lóbulos grandes por dentro, que en reposo se quedan en
+  el centro.
+- **Ninguna gota pequeña dentro de una grande de su misma capa.** El sombreado
+  la lee como un borde y sale un hoyuelo. De ahí la capa propia para las gotas
+  lanzadas.
+- **Un remolino de 28 gotas sueltas.** Sopa de confeti. Ahora es un molinillo
+  de cuatro brazos, un color por brazo.
+- **Gotas blancas que subían y volvían a caer en el compás 6.** Siempre había
+  dos en el aire a la misma altura: parecían un par de ojos. Ahora salen por
+  arriba y no vuelven, con el color de su columna.
+- **Un brazo en la primera nota del drop.** La gota parecía una bomba con
+  mecha. Ese instante es del estallido.
+- **Fundidos de color de dos o tres fotogramas en los golpes.** A medio camino
+  entre dos colores vivos hay un gris. Los cambios en los golpes son de un
+  fotograma.
+- **Gotas rosas en el último estallido.** Junto a la gota rosa final parecían
+  bultos suyos.
+- **Inundaciones que nacen pequeñas.** Ver «Sincronía»: nacían tapadas por la
+  gota y se veían un fotograma tarde.
+- **Desenfoque de movimiento y WebGL.** Por lo mismo que en LUMEN: cada
+  fotograma sale solo de su número y el resultado es exacto.
+
+## Qué cambió entre versiones
+
+Fotogramas revisados en esta parte: 512.
+
+**Pasada 1 (80 fotogramas: toda la línea de tiempo y recortes a tamaño real).**
+El aspecto salió a la primera: brillo, sombra y mezcla de colores. Fallaba la
+coreografía: las verrugas, el remolino de confeti, las gotas que nacían en el
+centro del cuerpo en vez de en su borde, la oscuridad del compás 4 que solo
+llegaba en el último medio tiempo, y gotas sueltas todavía en pantalla en el
+plano final.
+
+**Pasada 2 (111 fotogramas, uno de cada doce y los arreglos).**
+- Las gotas lanzadas se fundían con los cuerpos y los deformaban. Tercera capa.
+- Hoyuelos en la gota final: los lóbulos del temblor se hacían pequeños antes
+  de desaparecer. Ahora no encogen nunca, y en el render siguiente los
+  hoyuelos ya no estaban.
+- El corro de ocho estaba quieto demasiado tiempo. Ahora las gotas pares e
+  impares saltan en sentidos opuestos con cada golpe del redoble.
+- La zambullida del compás 6 pasaba por delante de las columnas. Ahora por
+  detrás.
+
+**Pasada 3, sobre el MP4 codificado (210 fotogramas, 180 de ellos
+consecutivos alrededor de cada golpe).** De aquí salieron los ojos, la mecha,
+los dos fotogramas grises y los bultos rosas de la lista de arriba. También:
+cada división del compás 3 lanza gotas del color de las hijas, y el brazo rosa
+del molinillo, que desaparecería sobre la inundación rosa, se vuelve cian
+justo por donde la inundación lo alcanza.
+
+**Lo que encontró la medición, no el ojo (18 fotogramas para comprobarlo).**
+Medí el color medio de cada fotograma del MP4 para ver en cuál empieza cada
+inundación. Cuatro de las trece empezaban a verse un fotograma tarde: el color
+nuevo nacía con unos 94 px de radio, escondido detrás de la gota. Ahora nace
+con 240. Y la gota final no llegaba a estar quieta: los lóbulos se retiraban de
+golpe a los 14,7 s. Ahora se quedan dentro, sin moverse.
+
+**Pasada 4, sobre el MP4 definitivo (93 fotogramas, incluidos los de cada
+golpe y 3 recortes a tamaño real).** Nada que arreglar. Los bordes y los
+brillos aguantan la compresión sin defectos.
+
+**La música.** −11,4 LUFS, 5,1 LU de rango y pico real de −2,0 dBTP dentro del
+MP4. El medio tiempo de silencio antes del drop queda 47,1 dB por debajo del
+drop, y el ataque del drop cae a 0,04 ms de la rejilla.
+
+## Sincronía, comprobada
+
+- El audio dentro del MP4 está desplazado **0 muestras** respecto al WAV.
+- **Las 13 inundaciones** empiezan en el fotograma calculado, medido sobre el
+  archivo final: 27, 55, 82, 109, 245, 464, 491, 518, 545, 573, 682, 736 y
+  791. En cada uno el color medio de la imagen salta al menos el triple que
+  en los dos fotogramas anteriores.
+- Cada una cae a menos de medio fotograma (±8,3 ms) de su sonido: −4,5, +7,6,
+  +3,0, −1,5, −7,6, +6,1, +1,5, −3,0, −7,6, +4,5, +3,0, −6,1 y +1,5 ms.
+- En el silencio (fotogramas 451 a 463) la imagen no cambia.
+- **El final está quieto de verdad.** Desde el fotograma 853 (14,22 s) el
+  color medio no varía ni 0,05 sobre 255: 0,78 s de imagen inmóvil.
+- El mismo fotograma renderizado por Remotion en Chrome y directamente desde
+  el motor sale con 0 píxeles distintos.
+
+## Lo que comprobé de que los otros cuatro siguen intactos
+
+Toqué el sintetizador para que los barridos de subida se afinen con cada
+pieza. Las pistas de CODY, POIRIER, la unión y LUMEN que genera ahora tienen
+el mismo SHA-256 que antes. Sus MP4 no se han regenerado, y el código de LUMEN
+no se ha tocado. Solo cambió de nombre la herramienta de fotogramas, que ahora
+sirve a las dos piezas: `scripts/stills.ts`.
+
+## Lo que no pude comprobar
+
+No puedo oír. Esta canción también es nueva y está medida, no escuchada. Usé
+la misma precaución que en LUMEN: armonía de cuatro acordes muy probada y
+melodía dentro de la pentatónica de La menor.
+
+Y lo dicho arriba: si es «mejor» lo decide quien lo ve. Yo puedo responder de
+que es más luminoso, más saturado y tiene más golpes por segundo, porque eso
+se mide.
+
+Como LUMEN, no se ve a tiempo real en Remotion Studio: hay que renderizarlo.
+
+## Cuánto tardó de verdad esta parte
+
+| Hora (UTC) | Hito |
+| --- | --- |
+| 12:00:04 | Empiezo. Huella de las cuatro pistas anteriores tomada antes de tocar el sintetizador. |
+| 12:00:59 | Partitura nueva escrita; acto seguido, pista sintetizada y medida. |
+| 12:05:44 | Motor de pintura y coreografía escritos. Pasada 1: toda la línea de tiempo. |
+| 12:07:51 | Primera tanda de arreglos. |
+| 12:09:23 | Pasada 2. |
+| 12:12:41 | Hoyuelos localizados y eliminados. |
+| 12:15:32 | Primer render completo: 2 min 28 s, 16,7 MB. |
+| 12:16:03 | Pasada 3, sobre el MP4. |
+| 12:19:58 | Arreglos de la pasada 3. |
+| 12:22:15 | Segundo render completo. |
+| 12:25:07 | Medición del MP4: cuatro inundaciones un fotograma tarde y un final que no se detenía. Arreglado y comprobado. |
+| 12:27:48 | Render definitivo: 2 min 16 s, 17,1 MB. Verificación final. |
+| 12:28:46 | Pasada 4, sobre el MP4 definitivo. |
+| 12:31:10 | Este documento escrito. |
+
+**Total de la cuarta parte: 31 min 6 s**, del encargo al documento terminado.
+Sumado a las tres primeras (1 h 51 min 13 s): 2 h 22 min 19 s de trabajo.
+
+Tiempos de máquina, medidos con `time` en 4 núcleos: sintetizar la pista
+2,0 s; un fotograma entre 0,12 y 0,40 s; el proceso completo (síntesis,
+900 fotogramas, unión y verificación) entre 2 min 14 s y 2 min 28 s.

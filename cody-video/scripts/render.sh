@@ -4,6 +4,7 @@
 #   scripts/render.sh poirier        ->  out/poirier.mp4        (15 s)
 #   scripts/render.sh cody-poirier   ->  out/cody-poirier.mp4   (30 s, the two joined)
 #   scripts/render.sh lumen          ->  out/lumen.mp4          (15 s, no letters)
+#   scripts/render.sh splash         ->  out/splash.mp4         (15 s, no letters, loud)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 NAME="${1:-cody}"
@@ -15,6 +16,7 @@ case "$NAME" in
   # 170,000 moving points are far harder to compress than flat shapes: at the
   # CRF 16 the others use, this one comes out at 53 MB.
   lumen)        COMP=Lumen;       SECONDS_LONG=15; ENCODE=(--crf=20 --x264-preset=slow) ;;
+  splash)       COMP=Splash;      SECONDS_LONG=15 ;;
   *) echo "unknown piece: $NAME" >&2; exit 1 ;;
 esac
 mkdir -p out

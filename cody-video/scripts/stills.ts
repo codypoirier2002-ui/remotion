@@ -1,9 +1,9 @@
 /**
- * Renders frames of LUMEN straight from the engine, without a browser, and
- * tiles them into labelled contact sheets. Same code as the video, so this is
- * the fast way to look at a change.
+ * Renders frames of LUMEN or SPLASH straight from their engines, without a
+ * browser, and tiles them into labelled contact sheets. Same code as the
+ * video, so this is the fast way to look at a change.
  *
- *   bun scripts/lumen-stills.ts <outdir> <frame,frame,...> [full]
+ *   bun scripts/stills.ts <lumen|splash> <outdir> <frame,frame,...> [full]
  *
  * With `full`, every frame is also kept as a 1920x1080 PNG.
  */
@@ -12,10 +12,14 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { H, W, renderLumen } from "../src/lumen/engine";
 import { BEAT_SEC, FPS } from "../src/score";
+import { renderSplash } from "../src/splash/scene";
 
-const [outDir, frameList, mode] = process.argv.slice(2);
-if (!outDir || !frameList)
-  throw new Error("usage: lumen-stills.ts <outdir> <frame,frame,...> [full]");
+const [piece, outDir, frameList, mode] = process.argv.slice(2);
+const render = { lumen: renderLumen, splash: renderSplash }[piece];
+if (!render || !outDir || !frameList)
+  throw new Error(
+    "usage: stills.ts <lumen|splash> <outdir> <frame,frame,...> [full]",
+  );
 const frames = frameList.split(",").map(Number);
 rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
@@ -27,7 +31,7 @@ const tiles: string[] = [];
 let spent = 0;
 frames.forEach((frame, index) => {
   const started = performance.now();
-  renderLumen(frame, rgba);
+  render(frame, rgba);
   spent += performance.now() - started;
   for (let p = 0, q = 0; p < W * H * 4; p += 4, q += 3) {
     rgb[q] = rgba[p];

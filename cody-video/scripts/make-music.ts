@@ -2,7 +2,7 @@
  * Synthesizes the soundtrack from nothing but math: oscillators, noise, filters,
  * envelopes, a reverb and a delay. No samples, no audio files read.
  *
- *   bun scripts/make-music.ts [cody | poirier | cody-poirier | lumen]
+ *   bun scripts/make-music.ts [cody | poirier | cody-poirier | lumen | splash]
  *
  * Every note comes from src/score*.ts, the same files the visuals read.
  */
@@ -12,6 +12,7 @@ import * as S from "../src/score";
 import { CODY_SCORE, type Score } from "../src/score";
 import { LUMEN_SCORE } from "../src/score-lumen";
 import { POIRIER_SCORE } from "../src/score-poirier";
+import { SPLASH_SCORE } from "../src/score-splash";
 
 /**
  * What to render. Each part is one 33-beat score; parts are played back to
@@ -21,21 +22,31 @@ import { POIRIER_SCORE } from "../src/score-poirier";
  *   bun scripts/make-music.ts poirier        ->  public/poirier-track.wav
  *   bun scripts/make-music.ts cody-poirier   ->  public/cody-poirier-track.wav
  *   bun scripts/make-music.ts lumen          ->  public/lumen-track.wav
+ *   bun scripts/make-music.ts splash         ->  public/splash-track.wav
  *
  * `pickup` is what happens in the beat before bar 1:
  *   dot     the dot whistles down, thuds and charges up
  *   joined  the dot is already on screen, so no whistle
  *   swell   nothing lands: one long swell into the first hit
+ *
+ * `tonic` is the key the pitched risers climb in: [swell from, build from, top] in Hz.
  */
-type Part = { score: Score; pickup: "dot" | "joined" | "swell" };
+const F_RISE = [87.3, 174.6, 1396.9];
+const A_RISE = [110, 220, 1760];
+type Part = {
+  score: Score;
+  pickup: "dot" | "joined" | "swell";
+  tonic: number[];
+};
 const PIECES: Record<string, Part[]> = {
-  cody: [{ score: CODY_SCORE, pickup: "dot" }],
-  poirier: [{ score: POIRIER_SCORE, pickup: "dot" }],
+  cody: [{ score: CODY_SCORE, pickup: "dot", tonic: F_RISE }],
+  poirier: [{ score: POIRIER_SCORE, pickup: "dot", tonic: F_RISE }],
   "cody-poirier": [
-    { score: CODY_SCORE, pickup: "dot" },
-    { score: POIRIER_SCORE, pickup: "joined" },
+    { score: CODY_SCORE, pickup: "dot", tonic: F_RISE },
+    { score: POIRIER_SCORE, pickup: "joined", tonic: F_RISE },
   ],
-  lumen: [{ score: LUMEN_SCORE, pickup: "swell" }],
+  lumen: [{ score: LUMEN_SCORE, pickup: "swell", tonic: F_RISE }],
+  splash: [{ score: SPLASH_SCORE, pickup: "swell", tonic: A_RISE }],
 };
 const pieceName = process.argv[2] ?? "cody";
 const parts = PIECES[pieceName];
@@ -592,7 +603,7 @@ parts.forEach((part, index) => {
   for (const t of P.TICKS) tom(sec(at + t.beat), t.midi, t.vel, t.pan);
 
   if (part.pickup === "swell") {
-    toneRiser(sec(at), sec(at + 1), 0.45, 87.3, 1396.9, 0);
+    toneRiser(sec(at), sec(at + 1), 0.45, part.tonic[0], part.tonic[2], 0);
     noiseRiser(sec(at), sec(at + 1), 0.55, 300, 9000, 2);
   } else {
     if (part.pickup === "dot") whistle(sec(at), 0.21, 2900, 520, 0.2);
@@ -606,8 +617,8 @@ parts.forEach((part, index) => {
     sec(at + 13),
     sec(at + 16.5),
     0.4,
-    174.6,
-    1396.9,
+    part.tonic[1],
+    part.tonic[2],
     1 / (S.BEAT_SEC / 4),
   );
   // Swell into the final hit.
