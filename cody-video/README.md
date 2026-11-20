@@ -16,19 +16,21 @@ synthesized from scratch. Everything is code: no images, no samples.
 | [`lumen.mp4`](./lumen.mp4) | LUMEN, 15 s. No words: 170,000 points of light, one continuous shot. |
 | [`splash.mp4`](./splash.mp4) | SPLASH, 15 s. No words: liquid paint that floods the screen in a new colour on the beat. |
 | [`cosmos.mp4`](./cosmos.mp4) | COSMOS, 60 s, vertical. 13.8 billion years in sixteen shots, from one point of light to the Earth seen as one. |
+| [`cosmos-wide.mp4`](./cosmos-wide.mp4) | COSMOS, 60 s, landscape 1920×1080: the picture full frame, the era and the timeline along the bottom. |
 | [`DECISIONES.md`](./DECISIONES.md) | What was decided and why (Spanish) |
 
 ## Run it
 
 ```console
 bun install
-bun run dev                      # Remotion Studio: Cody, Poirier, CodyPoirier, Lumen, Splash, Cosmos
+bun run dev                      # Remotion Studio: Cody, Poirier, CodyPoirier, Lumen, Splash, Cosmos, CosmosWide
 scripts/render.sh cody           # synth + render + mux + verify -> out/cody.mp4
 scripts/render.sh poirier        #                               -> out/poirier.mp4
 scripts/render.sh cody-poirier   #                               -> out/cody-poirier.mp4
 scripts/render.sh lumen          #                               -> out/lumen.mp4
 scripts/render.sh splash         #                               -> out/splash.mp4
 scripts/render.sh cosmos         #                               -> out/cosmos.mp4
+scripts/render.sh cosmos-wide    #                               -> out/cosmos-wide.mp4
 ```
 
 `scripts/render.sh` needs `ffmpeg` and `ffprobe` on the path.
@@ -40,7 +42,8 @@ to see them move, or look at stills without a browser:
 ```console
 bun scripts/stills.ts lumen /tmp/lumen 0,27,300,470,880     # contact sheet
 bun scripts/stills.ts splash /tmp/splash 0,27,300,470,880
-bun scripts/stills.ts cosmos /tmp/cosmos 150,500,1300,1700   # picture band only
+bun scripts/stills.ts cosmos /tmp/cosmos 150,500,1300,1700        # picture band only
+bun scripts/stills.ts cosmos-wide /tmp/wide 150,500,1300,1700    # the same, at 1920 wide
 ```
 
 COSMOS's captions use the Inter typeface if the machine has it installed, and
@@ -62,9 +65,9 @@ the system sans-serif otherwise.
 | `src/splash/engine.ts` | SPLASH: a metaball renderer. Blobs add to a field, paint is where the field is high, and the edge is bevelled and lit so it looks wet. |
 | `src/splash/scene.ts` | SPLASH: where every blob of paint is at a given beat. |
 | `src/cosmos/timeline.ts` | COSMOS: the sixteen shots and every hit, in beats. Read by the picture and the score. |
-| `src/cosmos/engine.ts` | COSMOS: a small renderer. Light added up in a pyramid of images, fractal noise, lit spheres, silhouettes, and a film look (bloom, lens streak, film curve, grade, grain). |
+| `src/cosmos/engine.ts` | COSMOS: a small renderer. Light added up in a pyramid of images, fractal noise, lit spheres, silhouettes, and a film look (bloom, lens streak, film curve, grade, grain). Renders at any scale of the band: the landscape version is computed at 1920 wide, not stretched. |
 | `src/cosmos/shots.ts` | COSMOS: what each shot shows at a given beat, and the camera. |
 | `src/cosmos/score.ts` | COSMOS: the trailer score. |
-| `src/Lumen.tsx`, `src/Splash.tsx`, `src/Cosmos.tsx` | One canvas each, which its engine fills, plus the track. `Cosmos.tsx` also lays out the vertical frame: header, picture band, captions. |
+| `src/Lumen.tsx`, `src/Splash.tsx`, `src/Cosmos.tsx` | One canvas each, which its engine fills, plus the track. `Cosmos.tsx` lays out both versions of COSMOS: vertical (header, picture band, captions) and `CosmosWide` (picture full frame, captions and timeline along the bottom). |
 | `scripts/review.sh`, `scripts/strip.sh`, `scripts/stills.ts` | Contact sheets of stills, used for the review passes. |
 | `scripts/analyze-audio.py` | Spectral balance per section of a track. |

@@ -9,8 +9,9 @@ de años de historia del universo, hecho a partir de un vídeo de referencia.
 Todo es código: la tipografía, el movimiento, la luz, la pintura, los
 paisajes y la música. No hay imágenes, vídeo de archivo ni muestras de audio.
 
-Este documento tiene cinco partes, en el orden en que se encargaron: CODY,
-luego POIRIER y la unión, después LUMEN, SPLASH y al final COSMOS.
+Este documento tiene seis partes, en el orden en que se encargaron: CODY,
+luego POIRIER y la unión, después LUMEN, SPLASH, COSMOS y, al final, COSMOS
+en horizontal.
 
 ## Resultado
 
@@ -22,9 +23,11 @@ luego POIRIER y la unión, después LUMEN, SPLASH y al final COSMOS.
 | `lumen.mp4` | LUMEN, sin palabras | 15,000000 s | 900 | 31,8 MB |
 | `splash.mp4` | SPLASH, sin palabras | 15,000000 s | 900 | 17,1 MB |
 | `cosmos.mp4` | COSMOS, vertical | 60,000000 s | 1800 | 20,2 MB |
+| `cosmos-wide.mp4` | COSMOS, horizontal | 60,000000 s | 1800 | 46,1 MB |
 
 Los cinco primeros: H.264, 1920×1080, 60 fps. COSMOS: H.264, 1080×1920
-(vertical), 30 fps, como su referencia. Todos con AAC estéreo a 48 kHz. Medido con `ffprobe`
+(vertical), 30 fps, como su referencia; y su versión horizontal, 1920×1080 a
+30 fps. Todos con AAC estéreo a 48 kHz. Medido con `ffprobe`
 sobre cada archivo final, contando los fotogramas decodificados uno a uno
 (`-count_frames`). La duración es la misma en el vídeo, en el audio y en el
 contenedor.
@@ -1097,3 +1100,90 @@ Sumado a las cuatro primeras (2 h 22 min 19 s): 3 h 0 min 33 s de trabajo.
 Tiempos de máquina, medidos con `time` en 4 núcleos: sintetizar la pista
 4,1 s; un fotograma del motor, unos 0,18 s; el proceso completo (síntesis,
 1800 fotogramas verticales, unión y verificación) 4 min 57 s.
+
+# Sexta parte: COSMOS en horizontal
+
+## Qué se pidió
+
+«Pásalo a horizontal para verlo en apaisado. Quita mi nombre y el texto de
+arriba; deja solo lo de la línea de tiempo de abajo.»
+
+## Qué hice
+
+- **`cosmos-wide.mp4`**, 1920×1080 a 30 fps, 60 segundos, la misma película y
+  el mismo sonido (la pista es el mismo archivo, byte a byte).
+- **La imagen llena el cuadro.** Fuera la cabecera, el emblema, tu nombre y
+  el pie de dos líneas.
+- **Se queda lo de abajo:** la fecha y el nombre de cada época, y la línea de
+  progreso, ahora sobre la imagen, abajo a la izquierda. Detrás llevan una
+  sombra suave para que se lean también sobre el Big Bang o un cielo claro.
+- **El título del final (COSMOS) se queda.** No estaba arriba sino en la
+  imagen, y cierra la película. Si lo quieres fuera, es una línea.
+
+## La decisión importante: renderizar más grande, no estirar
+
+La versión vertical calcula la imagen a 1080×608. Estirarla a 1920×1080 la
+habría dejado blanda: casi el doble de ancho sin un píxel nuevo. En vez de eso,
+el motor ahora acepta una escala. Los planos siguen escritos igual, en las
+coordenadas de la franja, y el motor multiplica posiciones y tamaños al
+dibujar; la luz de cada punto, por la escala al cuadrado, para que al
+repartirse en más píxeles brille lo mismo. Las capas suaves (niebla, gas,
+fuego) suben un nivel en la pirámide, así que cuestan lo mismo y tienen el
+mismo aspecto. El resultado es una imagen calculada de verdad a 1920×1081 (el
+píxel de más se recorta).
+
+## Comprobado
+
+- **La vertical no ha cambiado.** A escala 1 todas esas multiplicaciones son
+  por 1 exacto. 15 fotogramas del motor y 4 fotogramas completos de la
+  composición vertical, renderizados antes y después del cambio: 0 píxeles
+  distintos en los 19.
+- **La horizontal tiene el mismo aspecto.** Reduje 10 fotogramas horizontales
+  al tamaño de la franja y los comparé con los verticales: el brillo medio
+  difiere menos de 0,6 sobre 255 y la imagen coincide a 35–39 dB de PSNR. En
+  las ciudades baja a 27 dB porque a más resolución se ven luces más finas,
+  que es justo lo que se buscaba.
+- **El archivo final.** 1920×1080, 30 fps, 1800 fotogramas contados uno a uno,
+  60,000000 s en vídeo, audio y contenedor. Pesa 46,1 MB, más del doble que la
+  vertical: tiene 3,2 veces más píxeles, y el grano y el polvo se comprimen
+  mal.
+- **El mismo sonido.** El audio decodificado es idéntico, muestra a muestra,
+  al de la versión vertical; desplazado 0 muestras respecto al WAV; −13,9 LUFS.
+- **Los mismos golpes.** El brillo de la imagen salta de entre 17 y 168 a más
+  de 200 exactamente en los fotogramas 144, 576, 816, 1296 y 1728, los mismos
+  que en la vertical.
+- **Lo que dejé como está.** En los cinco destellos blancos (unos tres
+  fotogramas cada uno) la sombra de abajo oscurece el borde inferior del
+  blanco. A velocidad normal se lee como parte del destello; arreglarlo
+  costaba otro render de 11 minutos y no lo hice.
+
+## Fotogramas revisados en esta parte
+
+88 mirados: 15 del motor en horizontal, 12 completos de la composición (6
+enteros y 6 recortes del tercio inferior, sobre lo más claro de la película),
+un recorte a tamaño real y 60 del MP4 final, seguidos alrededor de cada corte
+y cada golpe. Además, 29 comparados por medida: 19 bit a bit entre antes y
+después del cambio en la vertical, y 10 entre la horizontal y la vertical.
+
+Lo único que cambió por lo que vi: la sombra detrás del texto. La primera
+versión no bastaba sobre el Big Bang, donde el texto se perdía en el
+amarillo; la hice más oscura abajo y le puse una sombra al texto.
+
+## Cuánto tardó de verdad esta parte
+
+| Hora (UTC) | Hito |
+| --- | --- |
+| 17:01:04 | Empiezo. |
+| 17:01:30 | Fotogramas de referencia de la versión vertical, para comparar después. |
+| 17:04:16 | Motor con escala. Los 15 fotogramas del motor, idénticos. |
+| 17:04:31 | Los 4 fotogramas completos verticales, idénticos. |
+| 17:04:58 | Primeros fotogramas horizontales del motor, comparados con los verticales. |
+| 17:06:02 | Composición horizontal: primeros fotogramas completos. |
+| 17:06:32 | Sombra detrás del texto reforzada y comprobada sobre lo más claro. |
+| 17:06:40 | Empieza el render. |
+| 17:17:33 | Render terminado: 10 min 44 s, más del doble que la vertical (4 min 57 s), por los píxeles. |
+| 17:18:51 | Verificación del archivo y revisión de 60 fotogramas del MP4. |
+| 17:19:35 | Este documento escrito. |
+
+**Total de la sexta parte: 18 min 31 s**, del encargo al documento terminado.
+Sumado a las cinco primeras (3 h 0 min 33 s): 3 h 19 min 4 s de trabajo.

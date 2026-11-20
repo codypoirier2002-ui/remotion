@@ -1,17 +1,17 @@
 /**
- * Renders frames of LUMEN, SPLASH or COSMOS straight from their engines,
+ * Renders frames of LUMEN, SPLASH or COSMOS (vertical band, or wide) straight from their engines,
  * without a browser, and tiles them into labelled contact sheets. Same code as
  * the video, so this is the fast way to look at a change. (For COSMOS this is
  * the picture band only, without the vertical frame around it.)
  *
- *   bun scripts/stills.ts <lumen|splash|cosmos> <outdir> <frame,frame,...> [full]
+ *   bun scripts/stills.ts <lumen|splash|cosmos|cosmos-wide> <outdir> <frame,frame,...> [full]
  *
  * With `full`, every frame is also kept as a full-size PNG.
  */
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { BH, BW } from "../src/cosmos/engine";
+import { WIDE, renderSize } from "../src/cosmos/engine";
 import { renderCosmos } from "../src/cosmos/shots";
 import { C_BEAT, C_FPS } from "../src/cosmos/timeline";
 import { H, W, renderLumen } from "../src/lumen/engine";
@@ -22,12 +22,27 @@ const [piece, outDir, frameList, mode] = process.argv.slice(2);
 const PIECES = {
   lumen: { render: renderLumen, w: W, h: H, fps: FPS, beat: BEAT_SEC },
   splash: { render: renderSplash, w: W, h: H, fps: FPS, beat: BEAT_SEC },
-  cosmos: { render: renderCosmos, w: BW, h: BH, fps: C_FPS, beat: C_BEAT },
+  cosmos: {
+    render: (frame: number, rgba: Uint8ClampedArray) =>
+      renderCosmos(frame, rgba, 1),
+    w: renderSize(1).w,
+    h: renderSize(1).h,
+    fps: C_FPS,
+    beat: C_BEAT,
+  },
+  "cosmos-wide": {
+    render: (frame: number, rgba: Uint8ClampedArray) =>
+      renderCosmos(frame, rgba, WIDE),
+    w: renderSize(WIDE).w,
+    h: renderSize(WIDE).h,
+    fps: C_FPS,
+    beat: C_BEAT,
+  },
 };
 const chosen = PIECES[piece as keyof typeof PIECES];
 if (!chosen || !outDir || !frameList)
   throw new Error(
-    "usage: stills.ts <lumen|splash|cosmos> <outdir> <frame,frame,...> [full]",
+    "usage: stills.ts <lumen|splash|cosmos|cosmos-wide> <outdir> <frame,frame,...> [full]",
   );
 const { render, w: WW, h: HH } = chosen;
 const frames = frameList.split(",").map(Number);

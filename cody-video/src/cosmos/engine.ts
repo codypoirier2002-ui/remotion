@@ -7,21 +7,36 @@
  * size; points of light go into the level that matches how blurred they are.
  * The pyramid is then collapsed into one image, which gets bloom, a
  * horizontal lens streak, a film curve, a grade, a vignette and grain.
+ *
+ * The shots are written for a band BW x BH. The same picture can be rendered
+ * larger (`setScale`): every drawing call multiplies positions and sizes by
+ * the scale, so the shots do not change. At scale 1 every one of those
+ * multiplications is by exactly 1, so the picture is the same to the bit.
  */
 export const BW = 1080;
 export const BH = 608;
+/** Scale for the landscape version: the band drawn 1920 wide. */
+export const WIDE = 16 / 9;
+/** Pixel size of the picture rendered at a scale. */
+export const renderSize = (scale: number) => ({
+  w: Math.round(BW * scale),
+  h: Math.round(BH * scale),
+});
 
 const LEVELS = 7;
-export const LW: number[] = [];
-export const LH: number[] = [];
+/** Render pixels per band pixel; its square; how many pyramid levels soft layers step up. */
+let K = 0;
+let K2 = 1;
+let SHIFT = 0;
+let RW = 0;
+let RH = 0;
+let LW: number[] = [];
+let LH: number[] = [];
 /** The pyramid. Level 0 is the picture itself. */
-export const ACC: Float32Array[] = [];
-for (let l = 0; l < LEVELS; l++) {
-  LW.push(Math.ceil(BW / 2 ** l));
-  LH.push(Math.ceil(BH / 2 ** l));
-  ACC.push(new Float32Array(LW[l] * LH[l] * 3));
-}
-export const IMG = ACC[0];
+let ACC: Float32Array[] = [];
+let IMG: Float32Array = new Float32Array(0);
+/** Coverage mask for silhouettes and bolts, 0..1, full size. */
+let MASK = new Float32Array(0);
 
 // ================================================================ noise
 const PERM = new Uint8Array(512);
@@ -113,7 +128,8 @@ export const clear = () => {
 
 /**
  * Fill one pyramid level pixel by pixel. `fn(x, y)` gets the pixel centre in
- * full-size band coordinates and writes into `out`, which is added.
+ * band coordinates and writes into `out`, which is added. Rows `y0` to `y1`
+ * (band coordinates) only.
  */
 const OUT = new Float32Array(3);
 export const shade = (
@@ -122,18 +138,19 @@ export const shade = (
   y0 = 0,
   y1 = BH,
 ) => {
-  const w = LW[level];
-  const s = 1 << level;
-  const a = ACC[level];
-  const j0 = Math.max(0, Math.floor(y0 / s));
-  const j1 = Math.min(LH[level], Math.ceil(y1 / s));
+  const l = level + SHIFT;
+  const w = LW[l];
+  const s = 1 << l;
+  const a = ACC[l];
+  const j0 = Math.max(0, Math.floor((y0 * K) / s));
+  const j1 = Math.min(LH[l], Math.ceil((y1 * K) / s));
   for (let j = j0; j < j1; j++) {
-    const y = (j + 0.5) * s;
+    const y = ((j + 0.5) * s) / K;
     for (let i = 0, o = j * w * 3; i < w; i++, o += 3) {
       OUT[0] = 0;
       OUT[1] = 0;
       OUT[2] = 0;
-      fn((i + 0.5) * s, y, OUT);
+      fn(((i + 0.5) * s) / K, y, OUT);
       a[o] += OUT[0];
       a[o + 1] += OUT[1];
       a[o + 2] += OUT[2];
@@ -150,11 +167,20 @@ export const splat = (
   g: number,
   b: number,
 ) => {
-  const level = Math.min(Math.log2(Math.max(radius, 0.5) * 2), LEVELS - 1.001);
+  // bigger picture: the same light spread over K^2 more pixels, so K^2 more of it
+  const x = px * K;
+  const y = py * K;
+  const rr = r * K2;
+  const gg = g * K2;
+  const bb = b * K2;
+  const level = Math.min(
+    Math.log2(Math.max(radius * K, 0.5) * 2),
+    LEVELS - 1.001,
+  );
   const lower = level <= 0 ? 0 : Math.floor(level);
   const upper = level <= 0 ? 0 : level - lower;
-  put(lower, px, py, r * (1 - upper), g * (1 - upper), b * (1 - upper));
-  if (upper > 0.02) put(lower + 1, px, py, r * upper, g * upper, b * upper);
+  put(lower, x, y, rr * (1 - upper), gg * (1 - upper), bb * (1 - upper));
+  if (upper > 0.02) put(lower + 1, x, y, rr * upper, gg * upper, bb * upper);
 };
 const put = (
   level: number,
@@ -272,23 +298,26 @@ const upAdd = (
 };
 
 // ---------------------------------------------------------------- shapes over the picture
-/** Coverage mask for silhouettes and bolts, 0..1, full size. */
-export const MASK = new Float32Array(BW * BH);
-
 /** A thick line, round ends, anti-aliased, into MASK (max). Width can taper from w0 to w1. */
 export const line = (
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
-  w0: number,
-  w1 = w0,
+  bx0: number,
+  by0: number,
+  bx1: number,
+  by1: number,
+  bw0: number,
+  bw1 = bw0,
 ) => {
+  const x0 = bx0 * K;
+  const y0 = by0 * K;
+  const x1 = bx1 * K;
+  const y1 = by1 * K;
+  const w0 = bw0 * K;
+  const w1 = bw1 * K;
   const pad = Math.max(w0, w1) / 2 + 1;
   const xa = Math.max(0, Math.floor(Math.min(x0, x1) - pad));
-  const xb = Math.min(BW - 1, Math.ceil(Math.max(x0, x1) + pad));
+  const xb = Math.min(RW - 1, Math.ceil(Math.max(x0, x1) + pad));
   const ya = Math.max(0, Math.floor(Math.min(y0, y1) - pad));
-  const yb = Math.min(BH - 1, Math.ceil(Math.max(y0, y1) + pad));
+  const yb = Math.min(RH - 1, Math.ceil(Math.max(y0, y1) + pad));
   const dx = x1 - x0;
   const dy = y1 - y0;
   const ll = dx * dx + dy * dy || 1;
@@ -300,19 +329,19 @@ export const line = (
       const d = Math.hypot(px - dx * t, py - dy * t);
       const half = (w0 + (w1 - w0) * t) / 2;
       const cover = Math.max(0, Math.min(1, half - d + 0.5));
-      const p = y * BW + x;
+      const p = y * RW + x;
       if (cover > MASK[p]) MASK[p] = cover;
     }
 };
 
-/** Everything below `top(x)` (in pixels from the top of the band), anti-aliased, into MASK. */
+/** Everything below `top(x)` (band coordinates, from the top of the band), anti-aliased, into MASK. */
 export const ground = (top: (x: number) => number) => {
-  for (let x = 0; x < BW; x++) {
-    const h = top(x + 0.5);
+  for (let x = 0; x < RW; x++) {
+    const h = top((x + 0.5) / K) * K;
     const y0 = Math.max(0, Math.floor(h));
-    for (let y = y0; y < BH; y++) {
+    for (let y = y0; y < RH; y++) {
       const cover = Math.max(0, Math.min(1, y + 1 - h));
-      const p = y * BW + x;
+      const p = y * RW + x;
       if (cover > MASK[p]) MASK[p] = cover;
     }
   }
@@ -320,7 +349,7 @@ export const ground = (top: (x: number) => number) => {
 
 /** Paint MASK onto the picture in one colour, then empty it. */
 export const fillMask = (r: number, g: number, b: number) => {
-  for (let p = 0, o = 0; p < BW * BH; p++, o += 3) {
+  for (let p = 0, o = 0; p < RW * RH; p++, o += 3) {
     const m = MASK[p];
     if (m <= 0) continue;
     IMG[o] += (r - IMG[o]) * m;
@@ -335,15 +364,18 @@ export const fillMask = (r: number, g: number, b: number) => {
  * the camera (nz > 0) and writes the light leaving that point.
  */
 export const sphere = (
-  cx: number,
-  cy: number,
-  r: number,
+  bcx: number,
+  bcy: number,
+  br: number,
   surface: (nx: number, ny: number, nz: number, out: Float32Array) => void,
 ) => {
+  const cx = bcx * K;
+  const cy = bcy * K;
+  const r = br * K;
   const xa = Math.max(0, Math.floor(cx - r - 1));
-  const xb = Math.min(BW - 1, Math.ceil(cx + r + 1));
+  const xb = Math.min(RW - 1, Math.ceil(cx + r + 1));
   const ya = Math.max(0, Math.floor(cy - r - 1));
-  const yb = Math.min(BH - 1, Math.ceil(cy + r + 1));
+  const yb = Math.min(RH - 1, Math.ceil(cy + r + 1));
   for (let y = ya; y <= yb; y++)
     for (let x = xa; x <= xb; x++) {
       const nx = (x + 0.5 - cx) / r;
@@ -361,7 +393,7 @@ export const sphere = (
         nz,
         OUT,
       );
-      const o = (y * BW + x) * 3;
+      const o = (y * RW + x) * 3;
       IMG[o] += (OUT[0] - IMG[o]) * cover;
       IMG[o + 1] += (OUT[1] - IMG[o + 1]) * cover;
       IMG[o + 2] += (OUT[2] - IMG[o + 2]) * cover;
@@ -369,17 +401,18 @@ export const sphere = (
 };
 
 // ================================================================ the film
-const B2W = Math.ceil(BW / 4);
-const B2H = Math.ceil(BH / 4);
-const B3W = Math.ceil(BW / 8);
-const B3H = Math.ceil(BH / 8);
-const B4W = Math.ceil(BW / 16);
-const B4H = Math.ceil(BH / 16);
-const B2 = new Float32Array(B2W * B2H * 3);
-const B3 = new Float32Array(B3W * B3H * 3);
-const B4 = new Float32Array(B4W * B4H * 3);
-const STREAK = new Float32Array(B3W * B3H * 3);
-const TMP = new Float32Array(B2W * B2H * 3);
+// Bloom at a quarter, an eighth and a sixteenth of the band (more steps down when it is drawn bigger).
+let B2W = 0;
+let B2H = 0;
+let B3W = 0;
+let B3H = 0;
+let B4W = 0;
+let B4H = 0;
+let B2 = new Float32Array(0);
+let B3 = new Float32Array(0);
+let B4 = new Float32Array(0);
+let STREAK = new Float32Array(0);
+let TMP = new Float32Array(0);
 
 const down = (
   src: Float32Array,
@@ -440,17 +473,51 @@ const blur = (img: Float32Array, w: number, h: number, vertical = true) => {
 };
 
 /** Fixed grain pattern, larger than the frame so each frame can read it from a different place. */
-const GRAIN_W = BW + 64;
-const GRAIN = new Float32Array(GRAIN_W * (BH + 64));
-for (let i = 0; i < GRAIN.length; i++) GRAIN[i] = gauss(i * 3 + 11);
-const VIGNETTE = new Float32Array(BW * BH);
-for (let y = 0, p = 0; y < BH; y++)
-  for (let x = 0; x < BW; x++, p++) {
-    const dx = (x - BW / 2) / (BW / 2);
-    const dy = (y - BH / 2) / (BH / 2);
-    VIGNETTE[p] =
-      1 - 0.32 * Math.pow(Math.min(1, (dx * dx * 0.8 + dy * dy) / 1.8), 1.4);
+let GRAIN_W = 0;
+let GRAIN = new Float32Array(0);
+let VIGNETTE = new Float32Array(0);
+
+/** Size every buffer for a scale. Called again only when the scale changes. */
+export const setScale = (scale: number) => {
+  if (scale === K) return;
+  K = scale;
+  K2 = scale * scale;
+  SHIFT = Math.max(0, Math.round(Math.log2(scale)));
+  ({ w: RW, h: RH } = renderSize(scale));
+  LW = [];
+  LH = [];
+  ACC = [];
+  for (let l = 0; l < LEVELS; l++) {
+    LW.push(Math.ceil(RW / 2 ** l));
+    LH.push(Math.ceil(RH / 2 ** l));
+    ACC.push(new Float32Array(LW[l] * LH[l] * 3));
   }
+  IMG = ACC[0];
+  MASK = new Float32Array(RW * RH);
+  const f = 4 << SHIFT;
+  B2W = Math.ceil(RW / f);
+  B2H = Math.ceil(RH / f);
+  B3W = Math.ceil(RW / (f * 2));
+  B3H = Math.ceil(RH / (f * 2));
+  B4W = Math.ceil(RW / (f * 4));
+  B4H = Math.ceil(RH / (f * 4));
+  B2 = new Float32Array(B2W * B2H * 3);
+  B3 = new Float32Array(B3W * B3H * 3);
+  B4 = new Float32Array(B4W * B4H * 3);
+  STREAK = new Float32Array(B3W * B3H * 3);
+  TMP = new Float32Array(B2W * B2H * 3);
+  GRAIN_W = RW + 64;
+  GRAIN = new Float32Array(GRAIN_W * (RH + 64));
+  for (let i = 0; i < GRAIN.length; i++) GRAIN[i] = gauss(i * 3 + 11);
+  VIGNETTE = new Float32Array(RW * RH);
+  for (let y = 0, p = 0; y < RH; y++)
+    for (let x = 0; x < RW; x++, p++) {
+      const dx = (x - RW / 2) / (RW / 2);
+      const dy = (y - RH / 2) / (RH / 2);
+      VIGNETTE[p] =
+        1 - 0.32 * Math.pow(Math.min(1, (dx * dx * 0.8 + dy * dy) / 1.8), 1.4);
+    }
+};
 const FILM = new Uint8ClampedArray(4097);
 for (let i = 0; i <= 4096; i++) {
   // ACES fit, then the display curve; indexed by sqrt so the dark end stays smooth
@@ -485,9 +552,9 @@ export const GRADE: Grade = {
   grain: 4,
 };
 
-/** Bloom, streak, film curve, grade, vignette and grain, into an RGBA buffer of BW x BH. */
+/** Bloom, streak, film curve, grade, vignette and grain, into an RGBA buffer of the rendered size. */
 export const develop = (g: Grade, frame: number, rgba: Uint8ClampedArray) => {
-  down(IMG, BW, BH, B2, B2W, B2H);
+  down(IMG, RW, RH, B2, B2W, B2H);
   blur(B2, B2W, B2H);
   down(B2, B2W, B2H, B3, B3W, B3H);
   blur(B3, B3W, B3H);
@@ -503,19 +570,19 @@ export const develop = (g: Grade, frame: number, rgba: Uint8ClampedArray) => {
     STREAK[i + 2] = B3[i + 2] * k * 1.4;
   }
   for (let n = 0; n < 9; n++) blur(STREAK, B3W, B3H, false);
-  upAdd(B2, B2W, B2H, IMG, BW, BH, 0.14 * g.bloom);
-  upAdd(B3, B3W, B3H, IMG, BW, BH, 0.22 * g.bloom);
-  upAdd(B4, B4W, B4H, IMG, BW, BH, 0.34 * g.bloom);
-  upAdd(STREAK, B3W, B3H, IMG, BW, BH, g.streak * 2.4);
+  upAdd(B2, B2W, B2H, IMG, RW, RH, 0.14 * g.bloom);
+  upAdd(B3, B3W, B3H, IMG, RW, RH, 0.22 * g.bloom);
+  upAdd(B4, B4W, B4H, IMG, RW, RH, 0.34 * g.bloom);
+  upAdd(STREAK, B3W, B3H, IMG, RW, RH, g.streak * 2.4);
 
   const ox = (frame * 37) % 64;
   const oy = (frame * 23) % 64;
   const [sr, sg, sb] = g.shadows;
   const [hr, hg, hb] = g.highlights;
   const keep = 1 - g.fade;
-  for (let y = 0, p = 0, o = 0, q = 0; y < BH; y++) {
+  for (let y = 0, p = 0, o = 0, q = 0; y < RH; y++) {
     const grow = (y + oy) * GRAIN_W + ox;
-    for (let x = 0; x < BW; x++, p++, o += 3, q += 4) {
+    for (let x = 0; x < RW; x++, p++, o += 3, q += 4) {
       const v = VIGNETTE[p] * g.exposure;
       let r = IMG[o] * v;
       let gg = IMG[o + 1] * v;

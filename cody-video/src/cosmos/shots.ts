@@ -21,6 +21,7 @@ import {
   line,
   noise3,
   rand,
+  setScale,
   shade,
   sphere,
   splat,
@@ -1475,8 +1476,13 @@ const SHOT_FNS = {
   end: homeShot,
 };
 
-/** Render one frame of the picture band into an RGBA buffer of BW x BH. */
-export const renderCosmos = (frame: number, rgba: Uint8ClampedArray) => {
+/** Render one frame of the picture into an RGBA buffer of renderSize(scale). */
+export const renderCosmos = (
+  frame: number,
+  rgba: Uint8ClampedArray,
+  scale: number,
+) => {
+  setScale(scale);
   const t = (frame + 0.5) / C_FPS / C_BEAT;
   const { shot, from } = shotAt(t);
   const grade: Grade = {
