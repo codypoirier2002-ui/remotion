@@ -3,13 +3,18 @@
 #   scripts/render.sh cody           ->  out/cody.mp4           (15 s)
 #   scripts/render.sh poirier        ->  out/poirier.mp4        (15 s)
 #   scripts/render.sh cody-poirier   ->  out/cody-poirier.mp4   (30 s, the two joined)
+#   scripts/render.sh lumen          ->  out/lumen.mp4          (15 s, no letters)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 NAME="${1:-cody}"
+ENCODE=()
 case "$NAME" in
   cody)         COMP=Cody;        SECONDS_LONG=15 ;;
   poirier)      COMP=Poirier;     SECONDS_LONG=15 ;;
   cody-poirier) COMP=CodyPoirier; SECONDS_LONG=30 ;;
+  # 170,000 moving points are far harder to compress than flat shapes: at the
+  # CRF 16 the others use, this one comes out at 53 MB.
+  lumen)        COMP=Lumen;       SECONDS_LONG=15; ENCODE=(--crf=20 --x264-preset=slow) ;;
   *) echo "unknown piece: $NAME" >&2; exit 1 ;;
 esac
 mkdir -p out
@@ -18,7 +23,7 @@ echo "1/4  synthesizing the track"
 bun scripts/make-music.ts "$NAME"
 
 echo "2/4  rendering $((SECONDS_LONG * 60)) frames"
-bunx remotion render "$COMP" "out/$NAME-picture.mp4" --log=error 2>&1 | grep -v -i -E "memory|docker" || true
+bunx remotion render "$COMP" "out/$NAME-picture.mp4" "${ENCODE[@]}" --log=error 2>&1 | grep -v -i -E "memory|docker" || true
 
 # Remotion pads the AAC stream to a whole number of audio frames (+19 ms).
 # Muxing the original WAV again and cutting at the exact length gives a file

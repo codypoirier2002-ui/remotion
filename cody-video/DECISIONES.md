@@ -1,12 +1,13 @@
 # DECISIONES
 
-Dos vídeos de 15 segundos, uno por nombre, **CODY** y **POIRIER**, y un tercero
-de 30 segundos en el que el primero desemboca en el segundo y termina con el
-nombre completo. Todo es código: la tipografía, el movimiento y la música. No
-hay fuentes, imágenes, vídeo de archivo ni muestras de audio.
+Dos vídeos de 15 segundos, uno por nombre, **CODY** y **POIRIER**; uno de 30
+segundos en el que el primero desemboca en el segundo y termina con el nombre
+completo; y un cuarto, **LUMEN**, de 15 segundos, con otro estilo y sin una
+sola letra. Todo es código: la tipografía, el movimiento, la luz y la música.
+No hay fuentes, imágenes, vídeo de archivo ni muestras de audio.
 
-Este documento tiene dos partes. La primera cuenta CODY, que fue el primer
-encargo. La segunda, más abajo, cuenta POIRIER y la unión.
+Este documento tiene tres partes, en el orden en que se encargaron: CODY,
+luego POIRIER y la unión, y al final LUMEN.
 
 ## Resultado
 
@@ -15,8 +16,9 @@ encargo. La segunda, más abajo, cuenta POIRIER y la unión.
 | `cody.mp4` | CODY | 15,000000 s | 900 | 20,3 MB |
 | `poirier.mp4` | POIRIER, se sostiene solo | 15,000000 s | 900 | 19,5 MB |
 | `cody-poirier.mp4` | Los dos unidos | 30,000000 s | 1800 | 39,8 MB |
+| `lumen.mp4` | LUMEN, sin palabras | 15,000000 s | 900 | 31,8 MB |
 
-Los tres: H.264, 1920×1080, 60 fps, AAC estéreo a 48 kHz. Medido con `ffprobe`
+Los cuatro: H.264, 1920×1080, 60 fps, AAC estéreo a 48 kHz. Medido con `ffprobe`
 sobre cada archivo final, contando los fotogramas decodificados uno a uno
 (`-count_frames`). La duración es la misma en el vídeo, en el audio y en el
 contenedor.
@@ -405,3 +407,248 @@ Sumado a la primera (43 min 52 s): 1 h 13 min 59 s de trabajo.
 Tiempos de máquina, medidos con `time` en 4 núcleos: el proceso completo (síntesis, render,
 unión y verificación) tarda entre 70 y 74 s para cada pieza de 15 segundos y
 entre 140 y 145 s para la de 30.
+
+# Tercera parte: LUMEN, sin palabras
+
+## Qué se pidió y cómo lo entendí
+
+«Otro, con un estilo distinto y sin palabras.» Mantuve todas las reglas del
+primer encargo: solo código, música sintetizada desde cero, 1920×1080, 60 fps,
+15 segundos exactos, revisar fotogramas al menos dos veces y dejarlo escrito
+aquí con el tiempo medido.
+
+«Distinto» lo tomé en serio. No es CODY sin letras: cambia el material, el
+espacio, el color, el montaje y la canción. `lumen` es solo el nombre del
+archivo. En pantalla no hay texto en ningún momento.
+
+## La idea
+
+Una sola: **una nube de 170.000 puntos de luz que no deja de convertirse en
+otra cosa.**
+
+Cada punto tiene un sitio fijo en una hoja imaginaria, y cada forma es una
+manera de doblar esa hoja: esfera, anillo, nudo, hélice, galaxia, túnel. Como
+los puntos son siempre los mismos y conservan a sus vecinos, las formas no se
+sustituyen unas a otras: se pliegan una en la siguiente. Todo el vídeo es un
+solo plano, sin un corte.
+
+## En qué se diferencia de los otros dos
+
+| | CODY y POIRIER | LUMEN |
+| --- | --- | --- |
+| Material | Trazos planos, tinta sobre papel | Puntos de luz en el vacío |
+| Espacio | Plano | Tres dimensiones, con cámara y enfoque |
+| Color | Cuatro tintas opacas | Luz que se suma: menta y violeta, y un rosa guardado para el drop |
+| Montaje | Un corte por compás | Un solo plano |
+| Sombreado | Ninguno | Sale solo: donde se apilan puntos, la luz se quema hacia el blanco |
+| Desenfoque de movimiento | Descartado | Real, y es parte del aspecto |
+| Música | Fa menor, bombo en cada tiempo | Fa mayor, medio tiempo |
+
+## Qué elegí y por qué
+
+**Luz acumulada, no formas dibujadas.** No hay ni un círculo ni una línea
+trazados. En cada fotograma se coloca cada punto en 3D, se proyecta, y su luz
+se suma en una imagen de coma flotante que luego se «revela» con una curva de
+película. Un punto solo apenas se ve; mil alineados en el borde de una esfera
+dan un filo brillante. Por eso las formas parecen de cristal sin que nadie las
+haya sombreado.
+
+**Una hoja con una rejilla dibujada.** El 26 % de los puntos están sobre 18
+meridianos y 12 paralelos de la hoja; el resto es polvo. La rejilla viaja con
+la hoja: en la esfera es un globo, en el anillo son costillas, en el nudo son
+aros, en la hélice son los bordes de las cintas, en la galaxia se enrolla en
+hilos espirales y en el túnel son los aros que pasan volando. Es lo que hace
+que se lea el plegado, y que una esfera de polvo quieta no parezca un disco.
+
+**Puntos repartidos sin azar.** Una secuencia de baja discrepancia en vez de
+números aleatorios: sin grumos ni calvas, y con el mismo número de puntos la
+superficie queda mucho más limpia.
+
+**Tres colores.** Menta (≈ `#34F3C4`) y violeta (≈ `#7B4CFF`), repartidos de
+un extremo a otro de la hoja, sobre un fondo casi negro que azulea en el
+centro. El blanco no es un color aparte: es lo que pasa cuando se suma mucha
+luz. El tercero, un rosa (≈ `#FF6FAC`), no existe hasta el drop: en ese golpe
+uno de cada diez puntos se enciende en rosa, y se apaga antes del final. El
+momento grande tiene un color que el resto del vídeo no tiene.
+
+**Una cámara de verdad.** Profundidad de campo (lo que se acerca o se aleja
+del plano de enfoque se abre en discos blandos), obturador abierto el 60 % del
+fotograma (lo que se mueve deja estela, hasta 18 muestras por punto), halo
+alrededor de lo muy brillante y exposición automática: cuando los 170.000
+puntos caben en diez píxeles, el diafragma se cierra para no quemar la
+pantalla. En los tres estallidos se abre a propósito.
+
+**Peso, golpe y rebote, también en una nube.** Todo va con muelles en segundos
+reales, y cada punto sale un poco antes o después que su vecino, así que las
+formas se propagan en vez de moverse en bloque. Cada bombo hincha la nube y la
+deja resonar; como el salto ocurre con el obturador abierto, el fotograma del
+golpe sale barrido desde el centro. Cada caja la ladea de un tirón y manda una
+onda esférica hacia fuera.
+
+**Una sola partitura para imagen y sonido, otra vez.** `src/score-lumen.ts`
+tiene cada bombo, caja, redoble, timbal y nota. El sintetizador y la imagen
+leen las mismas listas. Mantuve 132 pulsos por minuto: 15 segundos siguen
+siendo 33 tiempos, uno de anacrusa y ocho compases.
+
+**Otra canción con los mismos instrumentos.** Fa mayor en vez de Fa menor.
+Medio tiempo: bombo en el uno, caja en el tres. Un acorde por compás, Re
+menor, Si bemol, Fa y Do suspendido en la subida; Si bemol, Re menor, Do y Fa
+en el drop, que termina resuelto y luminoso. Semicorcheas punteadas de
+principio a fin, que en imagen son el centelleo: en cada una se enciende un
+3 % distinto de los puntos. La melodía es pentatónica y va sobre el ritmo del
+bombo. Añadí un instrumento al sintetizador, un colchón de acordes de ataque
+lento, que los otros dos vídeos no usan.
+
+**Estructura.**
+
+| Tiempo | Compás | Qué pasa |
+| --- | --- | --- |
+| 0,00 s | anacrusa | Un cielo de polvo cae en espiral hacia un punto. El polvo más cercano llega primero y enciende el centro. |
+| 0,45 s | 1 | El punto revienta y es una esfera. |
+| 2,27 s | 2 | Los dos polos se hunden hasta atravesarla: es un anillo. La caja lo ladea. |
+| 4,09 s | 3 | Rotura. Con el bombo estalla en polvo, queda suspendido, y cae como limaduras a un imán: en el bombo siguiente es un nudo de trébol. |
+| 5,91 s | 4 | El nudo se desata en una doble hélice. Cada golpe del redoble la encoge un paso, hasta un punto. Medio tiempo de silencio: solo el punto. |
+| 7,73 s | 5 y 6 | **El momento grande.** El punto estalla y deja una galaxia. Aparece el rosa. Cada bombo manda un anillo por el disco; en el compás 6 la cámara baja y lo roza. |
+| 11,36 s | 7 | El disco se hunde en un embudo y volamos por el túnel. Los cuatro timbales lo cierran en cuatro pasos, hasta un punto. |
+| 13,18 s | 8 | Último golpe: el punto estalla otra vez y es la esfera del principio. Tres notas, tres bandas de luz de polo a polo. Quieta. |
+
+## Qué descarté
+
+- **WebGL.** Habría sido mucho más rápido, pero depende de la tarjeta y del
+  navegador. Calculado en la CPU, píxel a píxel, el resultado es exacto: el
+  mismo fotograma renderizado fuera del navegador y dentro de Chrome sale con
+  0 píxeles distintos.
+- **Estelas acumulando el fotograma anterior.** Los fotogramas se renderizan
+  en paralelo y desordenados; cada uno tiene que salir solo de su número. El
+  desenfoque se calcula colocando cada punto dos veces, al abrir y al cerrar
+  el obturador.
+- **Rosa espolvoreado por todas partes.** La primera versión lo llevaba en
+  todas las escenas y parecía confeti. Guardado para el drop.
+- **Muelles con rebote para viajes largos.** Un rebote del 16 % es bonito
+  cuando un punto se mueve un palmo y es borrón cuando viene de dos pantallas
+  más allá. Donde el viaje es largo, los puntos aceleran hacia su sitio y se
+  clavan en seco justo en el tiempo; el rebote lo pone la forma entera.
+- **Los peldaños de la hélice.** La primera hélice era un ADN con peldaños.
+  Los que apuntaban a la cámara se estiraban por la perspectiva y parecían
+  rayas sueltas. Fuera: dos cintas con sus bordes.
+- **La esfera final saliendo directamente del túnel.** Los puntos del fondo
+  del túnel venían de muy lejos y un segundo después del golpe todavía no
+  habían llegado: la esfera aparecía con un plato cruzado. Ahora el túnel se
+  cierra del todo en un punto y la esfera sale de él, igual que al principio.
+- **Una escena más entre la galaxia y el túnel** (una sábana ondulante). Era
+  una forma de más. La galaxia se queda dos compases y cambia la cámara.
+- **Otro tempo.** A 132 la rejilla ya estaba probada en los otros dos.
+- **La compresión de los otros vídeos (CRF 16).** Ver abajo: 53,4 MB.
+
+## Qué cambió entre versiones
+
+Fotogramas revisados en esta parte: 365, en hojas de contacto y recortes a
+tamaño real.
+
+**Pasada 1 (56 fotogramas: los primeros de prueba y toda la línea de tiempo).**
+El aspecto funcionó a la primera. La coreografía no:
+- El compás 1 era una esfera de polvo quieta durante casi dos segundos. De
+  aquí salió la rejilla, y que cada forma se acerque un poco mientras dura.
+- La apertura era un disco gris que encogía. Ahora cae primero el polvo
+  cercano y las colas siguen llegando en espiral.
+- El núcleo de la galaxia tenía una aguja vertical: el bulbo estaba mal
+  repartido. Rehecho.
+- El túnel era un agujerito en el centro. Lo acorté de 15 a 10 unidades.
+- El aterrizaje final, el plato cruzado de más arriba.
+- El punto del silencio casi no se veía. Subí el mínimo de la exposición.
+- El drop tardaba: el muelle pasó de 1,9 a 3,2 Hz. En cuatro fotogramas ya
+  está al 60 % del tamaño.
+
+**Entre pasadas (49 fotogramas).** Los tres estallidos iluminan el cielo y
+abren el halo. El nudo dejó de llegar borroso (el imán). Comprobé que Remotion
+y el render directo dan la misma imagen.
+
+**Pasada 2 (75 fotogramas, uno de cada doce) y sus arreglos (21 más).**
+- Las rayas sueltas de la hélice. Hice dos pruebas para saber qué eran: sin
+  peldaños desaparecían, sin restos de la transición seguían. Eran los
+  peldaños vistos de punta.
+- La hélice se salía por arriba: de 2,7 a 2,4 de alto, y la transición con
+  menos rebote.
+- En la bajada de cámara el borde del disco quedaba en mitad del cuadro y el
+  tercio inferior en negro. Probé a bajarlo mucho y la galaxia se quedó en una
+  raya; el término medio es el que está.
+- La esfera final tocaba el borde del cuadro al rebotar: algo más pequeña y
+  con algo menos de rebote.
+
+**Pasada 3, sobre el MP4 codificado (100 fotogramas consecutivos alrededor de
+cada golpe y 6 recortes de compresión).**
+- Todos los golpes caen en el fotograma calculado.
+- El anillo de cada bombo levantaba el núcleo de la galaxia como un
+  salpicón. Ahora el anillo nace fuera del núcleo.
+- Medí el centelleo en el brillo medio de cada fotograma: un diente de sierra
+  cada semicorchea, pero de solo un 1 % en el primer compás. Reforzado.
+- El archivo pesaba 53,4 MB: polvo en movimiento es lo más caro que se le
+  puede dar a un codificador. Probé más compresión sobre los fotogramas
+  difíciles. A CRF 23 (20 MB) el polvo se volvía pasta. A CRF 20 con ajuste
+  lento aguanta: 31,8 MB.
+
+**Pasada 4, sobre el MP4 definitivo (46 fotogramas y 3 recortes a tamaño
+real).** Nada que arreglar.
+
+**La música.** Salió equilibrada a la primera porque la mezcla ya estaba
+hecha: −11,5 LUFS, 5,1 LU de rango, pico real de −1,8 dBTP dentro del MP4. El
+medio tiempo de silencio antes del drop queda 46,7 dB por debajo del drop.
+
+## Sincronía, comprobada
+
+- El audio dentro del MP4 está desplazado **0 muestras** respecto al WAV
+  (correlación cruzada).
+- Los tres estallidos y el aterrizaje del nudo, medidos sobre el archivo
+  final: el brillo medio salta en los fotogramas 27, 286, 464 y 791, que son
+  los calculados.
+- Cada golpe de imagen cae a menos de medio fotograma (±8,3 ms) del sonido:
+  primer estallido −4,5 ms, anillo −6,1, rotura −7,6, nudo −6,1, hélice +7,6,
+  drop +6,1, bajada de cámara +4,5, embudo +3,0, los cuatro timbales +6,1,
+  −7,6, −4,5 y −1,5, último estallido +1,5, las tres notas finales −3,0, +3,0
+  y +6,1.
+- Un matiz honesto: cuando un bombo cae con el obturador abierto, el barrido
+  aparece ya en ese fotograma, que puede ser el anterior al de la lista. Es
+  lo que haría una cámara.
+
+## Lo que comprobé de que los otros tres siguen intactos
+
+Para añadir el colchón de acordes y una entrada sin el «punto que cae» toqué
+el sintetizador. Las pistas de CODY, POIRIER y la unión que genera ahora
+tienen el mismo SHA-256 que antes de tocarlo. Sus MP4 no se han regenerado.
+
+## Lo que no pude comprobar
+
+Lo mismo que en las otras dos partes: no puedo oír. Esta canción es nueva
+(tonalidad, ritmo, acordes y melodía) y está medida, no escuchada. Elegí
+armonía y melodía conservadoras a propósito, todo dentro de la pentatónica de
+Fa, para que no pueda haber una nota que choque. Si algo no gusta al oído,
+está en `src/score-lumen.ts` y se cambia en una línea.
+
+Tampoco se puede ver a tiempo real en Remotion Studio: cada fotograma tarda
+un tercio de segundo en calcularse. Para verlo moverse hay que renderizarlo.
+
+## Cuánto tardó de verdad esta parte
+
+| Hora (UTC) | Hito |
+| --- | --- |
+| 10:21:42 | Empiezo. |
+| 10:26:29 | Partitura nueva escrita. Huella de las tres pistas anteriores tomada antes de tocar el sintetizador. |
+| 10:33:15 | Pista sintetizada y medida. Motor de render escrito. Primeros fotogramas. |
+| 10:34:23 | Pasada 1: toda la línea de tiempo. |
+| 10:37:01 | Primera tanda de arreglos. |
+| 10:39:50 | Composición de Remotion hecha; su imagen es idéntica a la del render directo. |
+| 10:40:45 | Pasada 2. |
+| 10:43:45 | Hélice y encuadres corregidos. |
+| 10:46:31 | Primer render completo: 2 min 39 s, 53,4 MB. |
+| 10:51:30 | Pasada 3, sobre el MP4. |
+| 10:55:25 | Render definitivo: 2 min 31 s, 31,8 MB. |
+| 10:56:28 | Verificación final y pasada 4. |
+| 10:58:56 | Este documento escrito. |
+
+**Total de la tercera parte: 37 min 14 s**, del encargo al documento terminado.
+Sumado a las dos primeras (1 h 13 min 59 s): 1 h 51 min 13 s de trabajo.
+
+Tiempos de máquina, medidos con `time` en 4 núcleos: sintetizar la pista
+1,4 s; un fotograma entre 0,27 y 0,60 s; el proceso completo (síntesis, 900
+fotogramas, unión y verificación) 2 min 31 s, el doble que los otros porque
+aquí cada píxel se calcula.

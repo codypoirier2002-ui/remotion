@@ -422,6 +422,7 @@ export const POIRIER_SCORE: Score = {
   TICKS,
   BASS,
   STABS,
+  PADS: [],
   ARP,
   LEAD,
   BELLS,

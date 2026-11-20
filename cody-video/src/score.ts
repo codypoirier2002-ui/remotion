@@ -255,6 +255,15 @@ stabs.push({
   decay: 0.9,
 });
 export const STABS = stabs;
+/** A held chord with a slow attack. `attack` is in seconds. */
+export type Pad = {
+  beat: number;
+  dur: number;
+  notes: number[];
+  vel: number;
+  bright: number;
+  attack: number;
+};
 /** Beats where a chord lands. Secondary accents for the picture. */
 export const STAB_BEATS = stabs.map((s) => s.beat);
 
@@ -376,6 +385,7 @@ export type Score = {
   TICKS: { beat: number; midi: number; vel: number; pan: number }[];
   BASS: BassNote[];
   STABS: Stab[];
+  PADS: Pad[];
   ARP: ArpNote[];
   LEAD: LeadNote[];
   BELLS: { beat: number; midi: number; vel: number }[];
@@ -391,6 +401,7 @@ export const CODY_SCORE: Score = {
   TICKS: [],
   BASS,
   STABS,
+  PADS: [],
   ARP,
   LEAD,
   BELLS,

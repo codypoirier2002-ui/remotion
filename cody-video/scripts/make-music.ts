@@ -2,14 +2,15 @@
  * Synthesizes the soundtrack from nothing but math: oscillators, noise, filters,
  * envelopes, a reverb and a delay. No samples, no audio files read.
  *
- *   bun scripts/make-music.ts [cody | poirier | cody-poirier]
+ *   bun scripts/make-music.ts [cody | poirier | cody-poirier | lumen]
  *
- * Every note comes from src/score.ts, the same file the visuals read.
+ * Every note comes from src/score*.ts, the same files the visuals read.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import * as S from "../src/score";
 import { CODY_SCORE, type Score } from "../src/score";
+import { LUMEN_SCORE } from "../src/score-lumen";
 import { POIRIER_SCORE } from "../src/score-poirier";
 
 /**
@@ -19,16 +20,22 @@ import { POIRIER_SCORE } from "../src/score-poirier";
  *   bun scripts/make-music.ts cody           ->  public/cody-track.wav
  *   bun scripts/make-music.ts poirier        ->  public/poirier-track.wav
  *   bun scripts/make-music.ts cody-poirier   ->  public/cody-poirier-track.wav
+ *   bun scripts/make-music.ts lumen          ->  public/lumen-track.wav
+ *
+ * `pickup` is what happens in the beat before bar 1:
+ *   dot     the dot whistles down, thuds and charges up
+ *   joined  the dot is already on screen, so no whistle
+ *   swell   nothing lands: one long swell into the first hit
  */
-type Part = { score: Score; whistle: boolean };
+type Part = { score: Score; pickup: "dot" | "joined" | "swell" };
 const PIECES: Record<string, Part[]> = {
-  cody: [{ score: CODY_SCORE, whistle: true }],
-  poirier: [{ score: POIRIER_SCORE, whistle: true }],
-  // joined: the dot is already on screen when POIRIER starts, so it does not whistle in
+  cody: [{ score: CODY_SCORE, pickup: "dot" }],
+  poirier: [{ score: POIRIER_SCORE, pickup: "dot" }],
   "cody-poirier": [
-    { score: CODY_SCORE, whistle: true },
-    { score: POIRIER_SCORE, whistle: false },
+    { score: CODY_SCORE, pickup: "dot" },
+    { score: POIRIER_SCORE, pickup: "joined" },
   ],
+  lumen: [{ score: LUMEN_SCORE, pickup: "swell" }],
 };
 const pieceName = process.argv[2] ?? "cody";
 const parts = PIECES[pieceName];
@@ -324,6 +331,47 @@ function stab(s: S.Stab) {
   }
 }
 
+/** A held chord: two detuned saws per note, a filter that opens with the attack. */
+function pad(p: S.Pad) {
+  const t0 = sec(p.beat);
+  const dur = p.dur * S.BEAT_SEC;
+  const len = Math.floor(SR * (dur + 0.5));
+  const i0 = Math.floor(t0 * SR);
+  const voices: { dt: number; ph: number; gl: number; gr: number }[] = [];
+  for (const midi of p.notes) {
+    [-0.09, 0.09].forEach((det, j) => {
+      const [gl, gr] = pan(j === 0 ? -0.8 : 0.8);
+      voices.push({ dt: mtof(midi + det) / SR, ph: rnd01(), gl, gr });
+    });
+  }
+  const lpL = new SVF();
+  const lpR = new SVF();
+  const norm = 1 / Math.sqrt(voices.length);
+  for (let i = 0; i < len && i0 + i < N; i++) {
+    const t = i / SR;
+    let l = 0;
+    let r = 0;
+    for (const v of voices) {
+      v.ph = (v.ph + v.dt) % 1;
+      const o = saw(v.ph, v.dt);
+      l += o * v.gl;
+      r += o * v.gr;
+    }
+    const open = Math.min(1, t / p.attack);
+    const fc = 260 + p.bright * (900 + 4200 * open * open);
+    lpL.tick(l * norm, fc, 0.9);
+    lpR.tick(r * norm, fc, 0.9);
+    const amp =
+      open * (t > dur ? Math.exp(-(t - dur) / 0.12) : 1) * p.vel * 0.3;
+    const ol = lpL.lp * amp;
+    const or = lpR.lp * amp;
+    musicBus.l[i0 + i] += ol;
+    musicBus.r[i0 + i] += or;
+    revSend.l[i0 + i] += ol * 0.5;
+    revSend.r[i0 + i] += or * 0.5;
+  }
+}
+
 function pluck(
   t0: number,
   midi: number,
@@ -523,6 +571,7 @@ parts.forEach((part, index) => {
   for (const b of P.BASS)
     bassNote(sec(at + b.beat), b.dur * S.BEAT_SEC, b.midi, b.vel, b.bright);
   for (const s of P.STABS) stab({ ...s, beat: at + s.beat });
+  for (const p of P.PADS) pad({ ...p, beat: at + p.beat });
   P.ARP.forEach((a, i) =>
     pluck(
       sec(at + a.beat),
@@ -542,11 +591,15 @@ parts.forEach((part, index) => {
   }
   for (const t of P.TICKS) tom(sec(at + t.beat), t.midi, t.vel, t.pan);
 
-  // Pickup: the dot whistles down, thuds, charges up.
-  if (part.whistle) whistle(sec(at), 0.21, 2900, 520, 0.2);
-  tom(sec(at + 0.5), 36, 0.85);
-  toneRiser(sec(at + 0.5), sec(at + 1), 0.5, 90, 1900, 0);
-  noiseRiser(sec(at + 0.4), sec(at + 1), 0.5, 600, 9000, 2.5);
+  if (part.pickup === "swell") {
+    toneRiser(sec(at), sec(at + 1), 0.45, 87.3, 1396.9, 0);
+    noiseRiser(sec(at), sec(at + 1), 0.55, 300, 9000, 2);
+  } else {
+    if (part.pickup === "dot") whistle(sec(at), 0.21, 2900, 520, 0.2);
+    tom(sec(at + 0.5), 36, 0.85);
+    toneRiser(sec(at + 0.5), sec(at + 1), 0.5, 90, 1900, 0);
+    noiseRiser(sec(at + 0.4), sec(at + 1), 0.5, 600, 9000, 2.5);
+  }
   // Build-up into the drop.
   noiseRiser(sec(at + 13), sec(at + 16.5), 0.62, 350, 10000, 2.2);
   toneRiser(
